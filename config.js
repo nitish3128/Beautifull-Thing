@@ -151,6 +151,12 @@ const CONFIG = window.CONFIG = {
       caption: "Safed libaas mein chaand zameen par utar aaya ho jaise... 🤍✨",
       label: "Noor-e-Kamaal 🕊️",
     },
+    {
+      src: "assets/videos/video4.mp4",
+      poster: "assets/photos/video4_poster.jpg",
+      caption: "Har ada mein ek sukoon, har lamhe mein ek ehsaas... 💜✨",
+      label: "Ada-e-Dilkash 💫",
+    },
   ],
 
   /* ══════════════════════════════════════════════════════════
