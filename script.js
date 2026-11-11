@@ -23,6 +23,23 @@ audio.loop     = true;
 audio.volume   = 0;
 let fadeHandle = null;
 
+// Dedicated soundtrack for Special Moments videos ("Lag Jaa Gale Instrumental Mix")
+const videoSongAudio = new Audio((typeof CONFIG !== 'undefined' && CONFIG.videoSong) || 'assets/songs/lag_jaa_gale_mix.mp3');
+videoSongAudio.preload = 'auto';
+videoSongAudio.volume  = 0.75;
+
+// When the video soundtrack ends, pause the looping video and resume theme song
+videoSongAudio.addEventListener('ended', () => {
+  document.querySelectorAll('video').forEach(v => {
+    v.pause();
+    v.currentTime = 0;
+  });
+  if (!isMuted) {
+    audio.play().catch(() => {});
+    fadeTo(0.62);
+  }
+});
+
 let currentValidSong = (typeof CONFIG !== 'undefined' && CONFIG.stages?.[0]?.song) || 'assets/songs/song1.mp3';
 
 function fadeTo(target, cb) {
@@ -321,7 +338,18 @@ function showScreen(id) {
   t.classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
   t.scrollTop = 0;
-  document.querySelectorAll('video').forEach(v => v.pause());
+  document.querySelectorAll('video').forEach(v => {
+    v.pause();
+    v.currentTime = 0;
+  });
+  if (typeof videoSongAudio !== 'undefined' && videoSongAudio && !videoSongAudio.paused) {
+    videoSongAudio.pause();
+    videoSongAudio.currentTime = 0;
+  }
+  if (typeof currentJukeboxAudio !== 'undefined' && currentJukeboxAudio && !currentJukeboxAudio.paused) {
+    currentJukeboxAudio.pause();
+    isJukeboxPlaying = false;
+  }
 }
 
 /* ══════════════════════════════════════════════
@@ -342,6 +370,7 @@ function buildChapterPills() {
       html += `<button class="chapter-pill${currentStageIndex === 'videos' ? ' active' : ''}" onclick="goToVideos()">🎬 Moments</button>`;
     }
   });
+  html += `<button class="chapter-pill${currentStageIndex === 'capsule' ? ' active' : ''}" onclick="goToCapsule()">💌 11:11 Space</button>`;
   el.innerHTML = html;
 }
 
@@ -468,7 +497,7 @@ function buildStages() {
             <div class="video-card" id="vcard-${vi}">
               <div class="video-wrap">
                 <video id="vid-${vi}" src="${v.src}" poster="${v.poster || ''}"
-                  preload="metadata" playsinline webkit-playsinline
+                  preload="metadata" playsinline webkit-playsinline loop muted
                   onerror="this.closest('.video-card').classList.add('vid-error')">
                 </video>
                 <div class="vid-overlay" id="voverlay-${vi}" onclick="toggleVideo(${vi})">
@@ -488,37 +517,118 @@ function buildStages() {
 }
 
 /* ══════════════════════════════════════════════
-   VIDEO TOGGLE  (play / pause with audio duck)
+   VIDEO TOGGLE  (synced with "Lagi Tumse Man Ki Lagan")
 ══════════════════════════════════════════════ */
 window.toggleVideo = vi => {
   const vid     = document.getElementById(`vid-${vi}`);
   const overlay = document.getElementById(`voverlay-${vi}`);
+  const wrap    = vid?.closest('.video-wrap');
   if (!vid) return;
 
   if (vid.paused) {
-    // Pause all other videos
+    // 1. Pause any other video
     document.querySelectorAll('video').forEach((v, i) => {
       if (i !== parseInt(vi)) {
         v.pause();
-        document.getElementById(`voverlay-${i}`)?.classList.remove('playing');
       }
     });
-    if (!isMuted) fadeTo(0.14);
+
+    // 2. Configure video loop and mute
+    vid.loop = true;
+    vid.muted = true;
+    vid.controls = true;
+    if (wrap) wrap.classList.add('has-played');
+    if (overlay) {
+      overlay.classList.add('playing');
+      overlay.style.display = 'none';
+    }
+
+    // 3. Pause background theme song
+    fadeTo(0, () => {
+      audio.pause();
+    });
+
+    // 4. Start "Lagi Tumse Man Ki Lagan"
+    if (typeof videoSongAudio !== 'undefined' && videoSongAudio) {
+      videoSongAudio.muted = isMuted;
+      videoSongAudio.play().catch(() => {});
+    }
+
     vid.play().catch(() => {});
-    overlay.classList.add('playing');
   } else {
     vid.pause();
-    overlay.classList.remove('playing');
-    if (!isMuted) fadeTo(0.62);
+    if (typeof videoSongAudio !== 'undefined' && videoSongAudio && !videoSongAudio.paused) {
+      videoSongAudio.pause();
+    }
+    if (!isMuted) {
+      audio.play().catch(() => {});
+      fadeTo(0.62);
+    }
   }
 };
 
-// Restore music when video ends
+// Global video events
+document.addEventListener('play', e => {
+  if (e.target.tagName !== 'VIDEO') return;
+  const vid = e.target;
+  const vi = vid.id.replace('vid-', '');
+  const overlay = document.getElementById(`voverlay-${vi}`);
+  const wrap = vid.closest('.video-wrap');
+
+  // Pause other videos
+  document.querySelectorAll('video').forEach(v => {
+    if (v !== vid) v.pause();
+  });
+
+  vid.loop = true;
+  vid.muted = true;
+  vid.controls = true;
+  if (wrap) wrap.classList.add('has-played');
+  if (overlay) {
+    overlay.classList.add('playing');
+    overlay.style.display = 'none';
+  }
+
+  // Fade out main background song and play video song
+  fadeTo(0, () => {
+    audio.pause();
+  });
+  if (typeof videoSongAudio !== 'undefined' && videoSongAudio) {
+    videoSongAudio.muted = isMuted;
+    videoSongAudio.play().catch(() => {});
+  }
+}, true);
+
+document.addEventListener('pause', e => {
+  if (e.target.tagName !== 'VIDEO') return;
+  const anyPlaying = Array.from(document.querySelectorAll('video')).some(v => !v.paused);
+  if (!anyPlaying) {
+    if (typeof videoSongAudio !== 'undefined' && videoSongAudio && !videoSongAudio.paused) {
+      videoSongAudio.pause();
+    }
+    if (!isMuted) {
+      audio.play().catch(() => {});
+      fadeTo(0.62);
+    }
+  }
+}, true);
+
 document.addEventListener('ended', e => {
   if (e.target.tagName !== 'VIDEO') return;
-  const vi = e.target.id.replace('vid-', '');
-  document.getElementById(`voverlay-${vi}`)?.classList.remove('playing');
-  if (!isMuted) fadeTo(0.62);
+  // If video reached end but song is still playing, loop video continuously!
+  if (typeof videoSongAudio !== 'undefined' && videoSongAudio && !videoSongAudio.paused) {
+    e.target.currentTime = 0;
+    e.target.play().catch(() => {});
+  } else {
+    const anyPlaying = Array.from(document.querySelectorAll('video')).some(v => !v.paused);
+    if (!anyPlaying) {
+      if (typeof videoSongAudio !== 'undefined' && videoSongAudio) videoSongAudio.pause();
+      if (!isMuted) {
+        audio.play().catch(() => {});
+        fadeTo(0.62);
+      }
+    }
+  }
 }, true);
 
 /* ══════════════════════════════════════════════
@@ -708,6 +818,12 @@ window.replayAll = () => {
 muteBtn.addEventListener('click', () => {
   isMuted = !isMuted;
   fadeTo(isMuted ? 0 : 0.62);
+  if (typeof videoSongAudio !== 'undefined' && videoSongAudio) {
+    videoSongAudio.muted = isMuted;
+  }
+  if (typeof currentJukeboxAudio !== 'undefined' && currentJukeboxAudio) {
+    currentJukeboxAudio.muted = isMuted;
+  }
   muteBtn.querySelector('.note').textContent = isMuted ? '🔇' : '🎵';
 });
 
@@ -863,6 +979,467 @@ document.addEventListener('keydown', e => {
 document.addEventListener('error', e => {
   if (e.target.tagName === 'IMG') e.target.src = ph();
 }, true);
+
+/* ══════════════════════════════════════════════
+   THE 11:11 SPACE · SHARED NOTES & JUKEBOX LOGIC
+══════════════════════════════════════════════ */
+let selectedNoteColor = 'lavender';
+let uploadedAudioBlobUrl = null;
+let uploadedAudioName = '';
+let currentJukeboxAudio = null;
+let currentJukeboxIdx = 0;
+let isJukeboxPlaying = false;
+
+window.goToCapsule = () => {
+  currentStageIndex = 'capsule';
+  document.body.className = 'theme-lavender';
+  const pills = document.getElementById('chapter-pills');
+  if (pills) pills.style.display = 'flex';
+  showScreen('screen-capsule');
+  buildStickers();
+  buildChapterPills();
+  initCapsuleSpace();
+  // Celebration burst
+  sparkleRing(window.innerWidth / 2, window.innerHeight / 3);
+};
+
+window.switchCapsuleTab = tab => {
+  document.querySelectorAll('.capsule-tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.capsule-tab-content').forEach(c => c.classList.remove('active'));
+  
+  const targetBtn = document.getElementById(`tab-btn-${tab}`);
+  const targetContent = document.getElementById(`tab-${tab}`);
+  if (targetBtn) targetBtn.classList.add('active');
+  if (targetContent) targetContent.classList.add('active');
+};
+
+window.selectNoteColor = (color, btn) => {
+  selectedNoteColor = color;
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+};
+
+window.handleAuthorChange = select => {
+  const customInput = document.getElementById('note-author-custom');
+  if (!customInput) return;
+  if (select.value === 'Custom') {
+    customInput.style.display = 'inline-block';
+    customInput.focus();
+  } else {
+    customInput.style.display = 'none';
+  }
+};
+
+// ── Shared Notes State ────────────────────────
+const DEFAULT_NOTES = [
+  {
+    id: 'note_1',
+    author: 'Nitish 🌙',
+    text: 'Ritika, thank you for being the wonderful, radiant soul you are. Having you in life makes everything lighter. Stay exactly the way you are! 🪻',
+    color: 'lavender',
+    likes: 5,
+    timestamp: '11:11 PM · Special'
+  },
+  {
+    id: 'note_2',
+    author: 'Ritika 🪻',
+    text: 'Bas yun hi hasste rehna hai... zindagi kitni bhi bhagti rahe, kuch pal theher kar yaad rakhne layak hote hain 🌸✨',
+    color: 'rose',
+    likes: 7,
+    timestamp: '11:11 PM · Memory'
+  },
+  {
+    id: 'note_3',
+    author: 'The 11:11 Sanctuary 💫',
+    text: 'This board belongs to both of us! Whenever you want to leave a thought, a memory, or an unsaid word, tap "✍️ Leave a Note" above. It stays pinned here forever. 💜',
+    color: 'moon',
+    likes: 3,
+    timestamp: 'Always'
+  }
+];
+
+function getStoredNotes() {
+  try {
+    const raw = localStorage.getItem('ritika_1111_notes');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return DEFAULT_NOTES;
+}
+
+function saveStoredNotes(notes) {
+  try {
+    localStorage.setItem('ritika_1111_notes', JSON.stringify(notes));
+  } catch (e) {}
+}
+
+window.saveNewNote = () => {
+  const textarea = document.getElementById('note-textarea');
+  const text = (textarea?.value || '').trim();
+  if (!text) {
+    if (textarea) textarea.focus();
+    return;
+  }
+
+  const select = document.getElementById('note-author-select');
+  const custom = document.getElementById('note-author-custom');
+  let author = select?.value || 'Nitish 🌙';
+  if (author === 'Custom' && custom && custom.value.trim()) {
+    author = custom.value.trim();
+  }
+
+  const now = new Date();
+  const timeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' +
+                  now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+  const notes = getStoredNotes();
+  const newNote = {
+    id: 'note_' + Date.now(),
+    author,
+    text,
+    color: selectedNoteColor,
+    likes: 1,
+    timestamp: timeStr
+  };
+
+  notes.unshift(newNote);
+  saveStoredNotes(notes);
+  if (textarea) textarea.value = '';
+
+  renderNotes();
+  launchConfetti(window.innerWidth / 2, window.innerHeight / 2, 40);
+  sparkleRing(window.innerWidth / 2, window.innerHeight / 2);
+};
+
+window.toggleNoteLike = id => {
+  const notes = getStoredNotes();
+  const note = notes.find(n => n.id === id);
+  if (note) {
+    note.likes = (note.likes || 0) + 1;
+    saveStoredNotes(notes);
+    renderNotes();
+  }
+};
+
+window.deleteNote = id => {
+  if (!confirm('Remove this note from the board?')) return;
+  let notes = getStoredNotes();
+  notes = notes.filter(n => n.id !== id);
+  saveStoredNotes(notes);
+  renderNotes();
+};
+
+window.exportNotes = () => {
+  const notes = getStoredNotes();
+  const exportText = notes.map(n => `[${n.author}] (${n.timestamp})\n${n.text}\n`).join('\n---\n\n');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(exportText).then(() => {
+      alert('All shared notes copied to clipboard! 📋✨');
+    });
+  } else {
+    alert(exportText);
+  }
+};
+
+function renderNotes() {
+  const wall = document.getElementById('notes-wall');
+  const countLabel = document.getElementById('notes-count-label');
+  if (!wall) return;
+
+  const notes = getStoredNotes();
+  if (countLabel) countLabel.textContent = `Shared Notes (${notes.length})`;
+
+  wall.innerHTML = notes.map(n => `
+    <div class="note-card ${n.color || 'lavender'}">
+      <div class="note-header">
+        <span class="note-author-badge">${n.author}</span>
+        <button class="note-del-btn" onclick="deleteNote('${n.id}')" title="Delete note">×</button>
+      </div>
+      <div class="note-text">${n.text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+      <div class="note-footer">
+        <span>${n.timestamp}</span>
+        <button class="note-like-btn" onclick="toggleNoteLike('${n.id}')">
+          ❤️ <span>${n.likes || 1}</span>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Jukebox State ─────────────────────────────
+const DEFAULT_PLAYLIST = [
+  {
+    title: 'Kabhi To Nazar Milao',
+    artist: 'Adnan Sami & Asha Bhosle',
+    src: 'assets/songs/song1.mp3',
+    note: 'Our main journey soundtrack 🪻'
+  },
+  {
+    title: 'Lag Jaa Gale (Instrumental Mix)',
+    artist: 'Lata Mangeshkar (Master Mix)',
+    src: 'assets/songs/lag_jaa_gale_mix.mp3',
+    note: 'Special Moments soundtrack 🎬✨'
+  },
+  {
+    title: 'Lagi Tumse Man Ki Lagan',
+    artist: 'Rahat Fateh Ali Khan',
+    src: 'assets/songs/lagan.aac',
+    note: 'Soulful Sufi classic 🕊️'
+  }
+];
+
+function getStoredPlaylist() {
+  try {
+    const raw = localStorage.getItem('ritika_1111_playlist');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return DEFAULT_PLAYLIST;
+}
+
+function saveStoredPlaylist(pl) {
+  try {
+    localStorage.setItem('ritika_1111_playlist', JSON.stringify(pl));
+  } catch (e) {}
+}
+
+window.handleSongFileUpload = e => {
+  const file = e.target.files?.[0];
+  const label = document.getElementById('uploaded-song-filename');
+  if (!file) return;
+
+  uploadedAudioBlobUrl = URL.createObjectURL(file);
+  uploadedAudioName = file.name.replace(/\.[^/.]+$/, "");
+  if (label) label.textContent = `Selected: ${file.name}`;
+
+  const titleInput = document.getElementById('song-input-title');
+  if (titleInput && !titleInput.value) {
+    titleInput.value = uploadedAudioName;
+  }
+};
+
+window.saveNewSong = () => {
+  const titleInput  = document.getElementById('song-input-title');
+  const artistInput = document.getElementById('song-input-artist');
+  const noteInput   = document.getElementById('song-input-note');
+  const urlInput    = document.getElementById('song-input-url');
+
+  const title  = (titleInput?.value || '').trim() || 'Untitled Melody';
+  const artist = (artistInput?.value || '').trim() || 'Special Dedication';
+  const note   = (noteInput?.value || '').trim() || 'Added to our vault ✨';
+  let src      = uploadedAudioBlobUrl || (urlInput?.value || '').trim();
+
+  if (!src) {
+    alert('Please pick an audio file or paste an audio URL!');
+    return;
+  }
+
+  const playlist = getStoredPlaylist();
+  playlist.push({ title, artist, note, src });
+  saveStoredPlaylist(playlist);
+
+  // Reset inputs
+  if (titleInput) titleInput.value = '';
+  if (artistInput) artistInput.value = '';
+  if (noteInput) noteInput.value = '';
+  if (urlInput) urlInput.value = '';
+  const label = document.getElementById('uploaded-song-filename');
+  if (label) label.textContent = 'No file chosen (or enter URL below)';
+  uploadedAudioBlobUrl = null;
+
+  renderPlaylist();
+  // Play the newly added track
+  playJukeboxTrack(playlist.length - 1);
+};
+
+window.playJukeboxTrack = idx => {
+  const playlist = getStoredPlaylist();
+  const track = playlist[idx];
+  if (!track) return;
+
+  currentJukeboxIdx = idx;
+
+  // Pause main site song and video song
+  fadeTo(0, () => audio.pause());
+  if (typeof videoSongAudio !== 'undefined' && videoSongAudio && !videoSongAudio.paused) {
+    videoSongAudio.pause();
+  }
+
+  if (currentJukeboxAudio) {
+    currentJukeboxAudio.pause();
+  }
+
+  currentJukeboxAudio = new Audio(track.src);
+  currentJukeboxAudio.volume = 0.75;
+  currentJukeboxAudio.play().then(() => {
+    isJukeboxPlaying = true;
+    updateJukeboxUI(track, true);
+  }).catch(() => {
+    isJukeboxPlaying = false;
+    updateJukeboxUI(track, false);
+  });
+
+  currentJukeboxAudio.onended = () => {
+    isJukeboxPlaying = false;
+    updateJukeboxUI(track, false);
+    // Auto-play next track
+    const nextIdx = (idx + 1) % playlist.length;
+    playJukeboxTrack(nextIdx);
+  };
+
+  renderPlaylist();
+};
+
+window.toggleJukeboxPlay = () => {
+  const playlist = getStoredPlaylist();
+  const track = playlist[currentJukeboxIdx] || playlist[0];
+  if (!track) return;
+
+  if (isJukeboxPlaying && currentJukeboxAudio) {
+    currentJukeboxAudio.pause();
+    isJukeboxPlaying = false;
+    updateJukeboxUI(track, false);
+    if (!isMuted) fadeTo(0.62);
+  } else {
+    playJukeboxTrack(currentJukeboxIdx);
+  }
+};
+
+function updateJukeboxUI(track, playing) {
+  const titleEl  = document.getElementById('jb-track-title');
+  const artistEl = document.getElementById('jb-track-artist');
+  const tagEl    = document.getElementById('jb-status-tag');
+  const btnEl    = document.getElementById('jb-main-play-btn');
+  const disc     = document.getElementById('vinyl-disc');
+  const card     = document.querySelector('.jukebox-player-card');
+
+  if (titleEl)  titleEl.textContent = track.title;
+  if (artistEl) artistEl.textContent = track.artist;
+  if (tagEl)    tagEl.textContent = playing ? 'NOW PLAYING 🎶' : 'PAUSED';
+  if (btnEl)    btnEl.textContent = playing ? '❚❚' : '▶';
+
+  if (disc) {
+    if (playing) disc.classList.add('spinning');
+    else disc.classList.remove('spinning');
+  }
+  if (card) {
+    if (playing) card.classList.add('playing');
+    else card.classList.remove('playing');
+  }
+}
+
+window.deleteJukeboxTrack = (idx, e) => {
+  if (e) e.stopPropagation();
+  let playlist = getStoredPlaylist();
+  const track = playlist[idx];
+  if (!track) return;
+
+  if (!confirm(`Remove "${track.title}" from the playlist?`)) return;
+
+  // If this track was currently playing, stop it
+  if (currentJukeboxIdx === idx && isJukeboxPlaying && currentJukeboxAudio) {
+    currentJukeboxAudio.pause();
+    isJukeboxPlaying = false;
+    updateJukeboxUI({ title: 'Select a melody', artist: '' }, false);
+    if (!isMuted) fadeTo(0.62);
+  } else if (currentJukeboxIdx > idx) {
+    currentJukeboxIdx--;
+  }
+
+  playlist.splice(idx, 1);
+  saveStoredPlaylist(playlist);
+  renderPlaylist();
+};
+
+function renderPlaylist() {
+  const listEl = document.getElementById('playlist-items');
+  if (!listEl) return;
+  const playlist = getStoredPlaylist();
+
+  if (!playlist.length) {
+    listEl.innerHTML = `
+      <div class="playlist-empty-state">
+        <span>🎶</span>
+        <p>No songs in the vault yet. Upload or add one above!</p>
+      </div>
+    `;
+    return;
+  }
+
+  listEl.innerHTML = playlist.map((t, i) => `
+    <div class="playlist-card${i === currentJukeboxIdx && isJukeboxPlaying ? ' active-track' : ''}">
+      <div class="track-main">
+        <div class="track-index">${i + 1}</div>
+        <div class="track-meta">
+          <h5 class="track-name">${t.title}</h5>
+          <p class="track-by">${t.artist}</p>
+          ${t.note ? `<span class="track-dedication">"${t.note}"</span>` : ''}
+        </div>
+      </div>
+      <div class="track-actions">
+        <button class="track-play-btn" onclick="playJukeboxTrack(${i})" title="Play this song">
+          ${(i === currentJukeboxIdx && isJukeboxPlaying) ? '❚❚' : '▶'}
+        </button>
+        <button class="track-del-btn" onclick="deleteJukeboxTrack(${i}, event)" title="Remove this song from vault">
+          ×
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── 11:11 Wish Jar State ──────────────────────
+const DEFAULT_WISHES_JAR = [
+  { text: 'May your smile always remain as effortless and radiant as it is today. 🪻', time: '11:11 PM' },
+  { text: 'Every wish for endless laughter, peace of mind, and dreams taking flight. ✨', time: '11:11 PM' }
+];
+
+function getStoredWishesJar() {
+  try {
+    const raw = localStorage.getItem('ritika_1111_wishes_jar');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return DEFAULT_WISHES_JAR;
+}
+
+window.submitWishJar = () => {
+  const input = document.getElementById('wish-jar-input');
+  const text = (input?.value || '').trim();
+  if (!text) {
+    if (input) input.focus();
+    return;
+  }
+
+  const now = new Date();
+  const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+  const wishes = getStoredWishesJar();
+  wishes.unshift({ text, time });
+  try {
+    localStorage.setItem('ritika_1111_wishes_jar', JSON.stringify(wishes));
+  } catch (e) {}
+
+  if (input) input.value = '';
+  renderWishJar();
+  launchConfetti(window.innerWidth / 2, window.innerHeight / 2, 70);
+  heartRain(16);
+};
+
+function renderWishJar() {
+  const list = document.getElementById('wishes-list');
+  if (!list) return;
+  const wishes = getStoredWishesJar();
+  list.innerHTML = wishes.map(w => `
+    <div class="wish-bubble">
+      <span>⭐ ${w.text}</span>
+      <span class="wish-bubble-time">${w.time}</span>
+    </div>
+  `).join('');
+}
+
+function initCapsuleSpace() {
+  renderNotes();
+  renderPlaylist();
+  renderWishJar();
+}
 
 /* ══════════════════════════════════════════════
    INIT

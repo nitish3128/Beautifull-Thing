@@ -167,8 +167,162 @@
       <p class="final-credit">Made with 💜 &amp; too many late-night thoughts</p>
     </div>
 
+    <button class="capsule-cta-btn" onclick="goToCapsule()">💌 Enter Our 11:11 Space (Shared Notes &amp; Songs) ✨</button>
     <button class="replay-btn" onclick="replayAll()">↺ Replay from the beginning ✨</button>
 
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       OUR 11:11 SPACE · SHARED NOTES & MELODY VAULT
+  ════════════════════════════════════════════ -->
+  <section class="screen" id="screen-capsule">
+    <div class="capsule-container">
+      
+      <!-- Header -->
+      <div class="capsule-header">
+        <div class="glass-badge">🪻 &nbsp;The 11:11 Sanctuary&nbsp; 🌙</div>
+        <h2 class="capsule-title">Our Shared Space</h2>
+        <p class="capsule-subtitle">
+          A little corner where we both can share notes, memories &amp; add favorite songs.
+        </p>
+      </div>
+
+      <!-- Nav Tabs -->
+      <div class="capsule-tabs">
+        <button class="capsule-tab-btn active" id="tab-btn-notes" onclick="switchCapsuleTab('notes')">💌 Shared Notes</button>
+        <button class="capsule-tab-btn" id="tab-btn-jukebox" onclick="switchCapsuleTab('jukebox')">🎵 Song Vault</button>
+        <button class="capsule-tab-btn" id="tab-btn-wishjar" onclick="switchCapsuleTab('wishjar')">⭐ 11:11 Wish Jar</button>
+      </div>
+
+      <!-- TAB 1: SHARED NOTES -->
+      <div class="capsule-tab-content active" id="tab-notes">
+        
+        <!-- Add Note Box -->
+        <div class="note-composer-card">
+          <div class="composer-top">
+            <span class="composer-title">✍️ Leave a Note</span>
+            <div class="author-toggle">
+              <label for="note-author-select">From:</label>
+              <select id="note-author-select" class="capsule-select" onchange="handleAuthorChange(this)">
+                <option value="Nitish 🌙">Nitish 🌙</option>
+                <option value="Ritika 🪻">Ritika 🪻</option>
+                <option value="Custom">Custom Name...</option>
+              </select>
+              <input type="text" id="note-author-custom" class="capsule-input" placeholder="Your name" style="display:none; max-width:110px;">
+            </div>
+          </div>
+
+          <textarea id="note-textarea" class="capsule-textarea" rows="3" placeholder="Write a thought, a memory, or a note for her... 💜"></textarea>
+
+          <div class="composer-bottom">
+            <!-- Mood / Color Picker -->
+            <div class="note-color-picker">
+              <span class="color-label">Color:</span>
+              <button type="button" class="color-dot active" data-color="lavender" onclick="selectNoteColor('lavender', this)" style="background:#e9d5ff;" title="Lavender 🪻"></button>
+              <button type="button" class="color-dot" data-color="rose" onclick="selectNoteColor('rose', this)" style="background:#fbcfe8;" title="Blush Rose 🌸"></button>
+              <button type="button" class="color-dot" data-color="peach" onclick="selectNoteColor('peach', this)" style="background:#fed7aa;" title="Sunset Peach 🌅"></button>
+              <button type="button" class="color-dot" data-color="moon" onclick="selectNoteColor('moon', this)" style="background:#c7d2fe;" title="Moonlight Blue 🌙"></button>
+              <button type="button" class="color-dot" data-color="mint" onclick="selectNoteColor('mint', this)" style="background:#bbf7d0;" title="Fresh Mint 🌿"></button>
+            </div>
+
+            <button class="capsule-submit-btn" onclick="saveNewNote()">Pin Note 📌✨</button>
+          </div>
+        </div>
+
+        <!-- Notes Filter & Actions -->
+        <div class="notes-meta-bar">
+          <span id="notes-count-label">Shared Notes (3)</span>
+          <button class="capsule-mini-btn" onclick="exportNotes()">📋 Copy Notes</button>
+        </div>
+
+        <!-- Pinned Notes Masonry Wall -->
+        <div class="notes-wall" id="notes-wall"></div>
+
+      </div>
+
+      <!-- TAB 2: SONG VAULT & JUKEBOX -->
+      <div class="capsule-tab-content" id="tab-jukebox">
+
+        <!-- Mini Player Card -->
+        <div class="jukebox-player-card">
+          <div class="jukebox-vinyl-wrap">
+            <div class="vinyl-disc" id="vinyl-disc">
+              <div class="vinyl-center">🪻</div>
+            </div>
+          </div>
+          <div class="jukebox-player-info">
+            <span class="now-playing-tag" id="jb-status-tag">READY TO PLAY</span>
+            <h4 class="jb-track-title" id="jb-track-title">Kabhi To Nazar Milao</h4>
+            <p class="jb-track-artist" id="jb-track-artist">Adnan Sami &amp; Asha Bhosle</p>
+            <div class="sound-wave-bars" id="jb-sound-bars">
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </div>
+          <div class="jukebox-player-ctrls">
+            <button class="jb-play-btn" id="jb-main-play-btn" onclick="toggleJukeboxPlay()">▶</button>
+          </div>
+        </div>
+
+        <!-- Add Song Form -->
+        <div class="add-song-card">
+          <h4 class="card-mini-title">➕ Add a Song to Our Playlist</h4>
+          <p class="card-mini-desc">Upload any audio file from your device, or paste an audio/song link with a sweet dedication!</p>
+          
+          <div class="song-form-grid">
+            <input type="text" id="song-input-title" class="capsule-input" placeholder="Song Title (e.g. Tum Se Hi)">
+            <input type="text" id="song-input-artist" class="capsule-input" placeholder="Artist (e.g. Mohit Chauhan)">
+            <input type="text" id="song-input-note" class="capsule-input" placeholder="Dedication note (e.g. Whenever I hear this, I smile ✨)">
+            
+            <div class="song-file-row">
+              <label class="file-picker-btn">
+                📁 Pick Audio File
+                <input type="file" id="song-file-upload" accept="audio/*" onchange="handleSongFileUpload(event)" style="display:none;">
+              </label>
+              <span id="uploaded-song-filename" class="file-status-text">No file chosen (or enter URL below)</span>
+            </div>
+
+            <input type="text" id="song-input-url" class="capsule-input" placeholder="Or paste direct audio URL / YouTube / Spotify link">
+          </div>
+
+          <button class="capsule-submit-btn" onclick="saveNewSong()">Add to Song Vault 🎶</button>
+        </div>
+
+        <!-- Songs List -->
+        <div class="playlist-section">
+          <h4 class="section-title">Our Playlist 🎧</h4>
+          <div class="playlist-items" id="playlist-items"></div>
+        </div>
+
+      </div>
+
+      <!-- TAB 3: 11:11 WISH JAR -->
+      <div class="capsule-tab-content" id="tab-wishjar">
+        <div class="wish-jar-card">
+          <div class="jar-icon-wrap">
+            <div class="magical-jar">🏺✨</div>
+          </div>
+          <h3 class="jar-title">The 11:11 Wish Jar</h3>
+          <p class="jar-desc">
+            Whenever it's 11:11, or whenever a beautiful thought crosses your mind, seal a wish into this jar.
+          </p>
+
+          <div class="wish-input-row">
+            <input type="text" id="wish-jar-input" class="capsule-input" placeholder="Drop an 11:11 wish into the jar... 🪻">
+            <button class="capsule-submit-btn" onclick="submitWishJar()">Make Wish 💫</button>
+          </div>
+
+          <div class="wishes-list" id="wishes-list"></div>
+        </div>
+      </div>
+
+      <!-- Bottom Nav Back to Journey -->
+      <div class="capsule-footer-nav">
+        <button class="capsule-nav-btn" onclick="goToStage(4)">‹ Ch. 5</button>
+        <button class="capsule-nav-btn" onclick="goToFinal()">💖 Finale</button>
+        <button class="capsule-nav-btn" onclick="replayAll()">↺ Replay All</button>
+      </div>
+
+    </div>
   </section>
 
   <!-- ═══════════════════ Scripts (order matters) ═══════════════════ -->

@@ -77,12 +77,16 @@ const CONFIG = window.CONFIG = {
       caption: "Woh aankhein — jaise julf-numa baadlon ke peeche chhupa koi chaand 🖤💜",
     },
     {
-      src: "assets/photos/photo6.jpg",
-      caption: "Gulabi rang mein ye pyari si muskaan — din roshan karne ke liye bas itna hi kafi hai 🌸✨",
+      src: "assets/photos/photo17.jpg",
+      caption: "Teri zulf ko chhukar jo hawa gujri, jannat ki or ruksat hui🌸✨",
+    },
+    {
+      src: "assets/photos/photo7.jpg",
+      caption: "Teri is muskan se jannat me bhi baahar... 🌸✨",
     },
     {
       src: "assets/photos/photo1.jpg",
-      caption: "Streetlights bhi jaante hain — aap main character hai 🌙🛣️",
+      caption: "Streetlights bhi jaante hain — aap main character hain 🌙🛣️",
     },
     {
       src: "assets/photos/photo2.jpg",
@@ -118,15 +122,16 @@ const CONFIG = window.CONFIG = {
     },
     {
       src: "assets/photos/photo15.jpg",
-      caption: "Sadgi mein bhi itni khoobsurati — kudrat ka kamaal hai tu 🌸💫",
+      caption: "Appki sadgi me hi kayamat ki adaa hai..🌸💫",
     },
     {
       src: "assets/photos/photo16.jpg",
-      caption: "Hasti raho yunhi, tumhari hasi sabse pyari dua hai 🪻💜",
+      caption: "Every heart stops when you smile...🪻💜",
     },
   ],
 
-  /* ── Videos ──────────────────────────────────────────── */
+  /* ── Videos & Soundtrack ────────────────────────────── */
+  videoSong: "assets/songs/lag_jaa_gale_mix.mp3",
   videos: [
     {
       src: "assets/videos/video1.mp4",
@@ -140,6 +145,12 @@ const CONFIG = window.CONFIG = {
       caption: "Camera bhi aappe ruk jaata hai — Ti-lismi Husn hai 🪔✨",
       label: "Because some things deserve to be remembered 🌸",
     },
+    {
+      src: "assets/videos/video3.mp4",
+      poster: "assets/photos/video3_poster.jpg",
+      caption: "Safed libaas mein chaand zameen par utar aaya ho jaise... 🤍✨",
+      label: "Noor-e-Kamaal 🕊️",
+    },
   ],
 
   /* ══════════════════════════════════════════════════════════
@@ -151,26 +162,26 @@ const CONFIG = window.CONFIG = {
   ══════════════════════════════════════════════════════════ */
   wishes: [
 
-    /* ── Chapter I  ·  Original — Warm & Personal ── */
+    /* ── Chapter I  ·  Poetic & Timeless ── */
     {
-      text: "You are precious, and the world is brighter because you exist. 🌷",
-      by: "— for Ritika, always",
+      text: "धूप में निकलो घटाओं में नहा कर देखो,\nज़िंदगी क्या है किताबों को हटा कर देखो।\nफ़ासिला नज़रों का धोखा भी तो हो सकता है,\nवो जिसे ढूँढ रहे हो उसे पा कर देखो। 🌸",
+      by: "",
     },
     {
-      text: "Your smile could fix the worst of days — just like that, effortlessly. ☀️",
-      by: "— a truth, not a compliment",
+      text: "कुछ अलग ही बात है तुम्हारी मौजूदगी में —\nजैसे किसी तपती दोपहर को ठंडी हवा का झोंका छू जाए। 🍃✨",
+      by: "",
     },
     {
-      text: "You are trully beautiful inside and out, and you deserve every good thing the universe has. 🦋",
-      by: "— genuinely",
+      text: "वो तो ख़ुशबू है हवाओं में बिखर जाएगा,\nमसअला फूल का है, फूल किधर जाएगा!\nअक्स-ए-ख़ुशबू हूँ बिखरने से न रोके कोई,\nऔर बिखर जाऊँ तो मुझ को न समेटे कोई। 🌷",
+      by: "",
     },
     {
-      text: "Never forget how lovely and special you are. The world keeps proving it, even when you don't see it. 🌸",
-      by: "— always",
+      text: "उजाले अपनी यादों के हमारे साथ रहने दो,\nन जाने किस गली में ज़िंदगी की शाम हो जाए।\nकभी तो आसमाँ से चाँद उतरे जाम हो जाए,\nतुम्हारे नाम की इक ख़ूबसूरत शाम हो जाए। 🌙",
+      by: "",
     },
     {
-      text: "There is something extraordinary about the way you move through the world. Jaise Ho koi Mahtaab.... ✨",
-      by: "— original",
+      text: "She walks in beauty, like the night\nof cloudless climes and starry skies;\nand all that's best of dark and bright\nmeet in her aspect and her eyes. ✨",
+      by: "",
     },
 
     /* ── Chapter I  ·  Faiz Ahmed Faiz ── */
@@ -337,38 +348,38 @@ const CONFIG = window.CONFIG = {
       by: "— inspired by Victor Hugo",
     },
 
-    /* ── Chapter IV  ·  Original Hindi ── */
+    /* ── Chapter IV  ·  Soulful & Elegant ── */
     {
-      text: "Ritika, tu sirf ek naam nahi —\ntu ek ehsaas hai jo dil ko sukoon deta hai,\njab bhi yaad aata hai. 💜",
-      by: "— original",
+      text: "जो गुज़ारी न जा सकी हम से,\nहम ने वो ज़िंदगी गुज़ारी है...\nमगर जब से देखा है रुख़-ए-महताब तुम्हारा,\nज़िंदगी भी हम से संवरने लगी है। 💜",
+      by: "",
     },
     {
-      text: "Tu chaand si hai —\naur chaand ko kisi ki zaroorat nahi hoti chamakne ke liye.\nWo bas chamakata hai. 🌙",
-      by: "— original",
+      text: "तेरी सादगी में वो बात है जो किसी बनावट में नहीं,\nजैसे दरिया का शांत बहना, जैसे रात की पहली ओस।\nतेरी एक मुस्कान ही काफ़ी है,\nहर बेज़ार लम्हे को गुलज़ार करने के लिए। 🪔✨",
+      by: "",
     },
     {
-      text: "Malika-ye-Husn —\nsirf chehra nahi,\nteri rooh bhi beautiful hai,\naur teri rooh mein ek poora jahaan basता है। 👑💜",
-      by: "— original",
+      text: "हज़ार बर्क़ गिरे लाख आँधियाँ उट्ठें,\nवो फूल खिल के रहेंगे जो खिलने वाले हैं।\nतेरी हँसी से महकती है ये फ़ज़ा सारी,\nतू मुस्कुराए तो मौसम बदल से जाते हैं। 🌸",
+      by: "",
     },
     {
-      text: "My 11:11 —\nhar wish mein tu hi hoti hai,\njaane kyun, par hoti zaroor hai. 🪻",
-      by: "— original",
+      text: "चाँद भी निकला सितारों की भी महफ़िल चमकी,\nमगर उस हुस्न का सानी इस फ़लक पर न मिला।\nतेरी आँखों में जो गहराइयाँ हैं,\nउनमें डूब कर हर दर्द हल्का सा लगता है। 🌙",
+      by: "",
     },
     {
-      text: "Jab tu kamre mein aati hai —\nenergy badal jaati hai.\nYeh gift hai teri,\naur shayad tujhe pata bhi nahi. 💫",
-      by: "— original",
+      text: "हाथ छूटे भी तो रिश्ते नहीं छूटा करते,\nवक़्त की शाख़ से लम्हे नहीं टूटा करते।\nतू जहाँ भी रहे, रौशनी की तरह महके,\nदुआ यही है कि तेरे चेहरे का नूर हमेशा सलामत रहे। 💫",
+      by: "",
     },
     {
-      text: "Tu dazzling nemesis isliye hai —\nkyunki tu itni bright hai\nki aankhein chundha jaati hain,\npar phir bhi hum dekhte rehte hain. ✨",
-      by: "— original",
+      text: "जिस की दीद में रौशन थीं बस्तियाँ दिल की,\nवो एक शख़्स जो सब से जुदा सा लगता है।\nनज़र उठा के जो देखे तो बहार ठहर जाए,\nक़दम बढ़ाए तो हर रास्ता महक जाए। 🌺",
+      by: "",
     },
     {
-      text: "Teri zindagi mein bahut saari khushiyan aayein —\nphool ki tarah, baarish ki tarah,\naur un lamhon ki tarah jo tujhe ro ke bhi muskurate hain. 🌈",
-      by: "— original",
+      text: "हवा के दोश पे रखे हुए चिराग़ हैं हम,\nअगर बुझे भी तो अपनी ज़िया लुटा के बुझे।\nतू सलामत रहे अपनी ही सादगी और नूर के साथ,\nतेरे होने से ही इस महफ़िल में रौनक़ है। 👑",
+      by: "",
     },
     {
-      text: "Ritzzz — tu jo bhi hai,\nbilkul aisi hi reh.\nBadalni mat kabhi. 🎀",
-      by: "— tumhara 11:11",
+      text: "छाप तिलक सब छीनी रे तोसे नैना मिलाइके,\nप्रेम भटी का मदवा पिलाइके, मतवारी कर दीन्ही रे।\nन कोई शिकवा, न कोई गुज़ारिश तुमसे,\nबस दुआ है कि तू हमेशा यूँ ही हँसती रहे। 🪻",
+      by: "",
     },
 
     /* ── Ramdhari Singh Dinkar ── */
