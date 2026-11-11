@@ -78,7 +78,7 @@ const CONFIG = window.CONFIG = {
     },
     {
       src: "assets/photos/photo6.jpg",
-      caption: "Jo pal tere saath guzre, yado me kuch is trah base...chale umrbhar 🌳💫",
+      caption: "Gulabi rang mein ye pyari si muskaan — din roshan karne ke liye bas itna hi kafi hai 🌸✨",
     },
     {
       src: "assets/photos/photo1.jpg",
