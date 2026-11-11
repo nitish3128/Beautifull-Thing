@@ -1,0 +1,17 @@
+{
+  "name": "Ritika — My 11:11",
+  "short_name": "My 11:11 🪻",
+  "description": "A special celebration for Ritika — thanks for existing My 11:11 🪻",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FFE0EE",
+  "theme_color": "#C9B8F5",
+  "icons": [
+    {
+      "src": "assets/photos/cover.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
+
