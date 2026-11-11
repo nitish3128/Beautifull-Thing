@@ -9,26 +9,35 @@ A magical, mobile-first single-page experience built with pure HTML, CSS & JS. N
 Run in your terminal inside `d:\1 MOON🪻`:
 
 ```bash
-# Option A — npm (configured and ready)
+# Start local server on port 3000
 npm run dev
-
-# Option B — Python
-python -m http.server 5500
 ```
 
 Then open your browser:
-👉 **`http://localhost:5500`**
+👉 **`http://localhost:3000`**
 
 ### 📱 Test on your phone right now (same Wi-Fi)
 1. In PowerShell, run `ipconfig` to see your IPv4 address (e.g. `192.168.1.15`).
 2. Run `npm run dev`.
-3. On your phone's browser, open `http://<YOUR_IP>:5500` (e.g. `http://192.168.1.15:5500`).
-
-> ⚠️ **Must** run from a local server (not `file://`) because of audio and image loading policies.
+3. On your phone's browser, open `http://<YOUR_IP>:3000` (e.g. `http://192.168.1.15:3000`).
 
 ---
 
-## 📁 Folder Structure
+## 🌐 Deploy Free (Render, Netlify, Vercel)
+
+### Option 1 · Render (Static Site)
+1. Go to [dashboard.render.com](https://dashboard.render.com) and link your GitHub repo.
+2. Select **Static Site**.
+3. Set **Build Command**: *(leave empty)*
+4. Set **Publish Directory**: `.` (a single dot)
+5. Click **Create Static Site** (or **Manual Deploy > Clear build cache & deploy**).
+
+### Option 2 · Netlify (Drag & Drop or Git)
+1. Go to [app.netlify.com/drop](https://app.netlify.com/drop)
+2. Drag and drop the `d:\1 MOON🪻` folder directly into the window.
+
+### Option 3 · Vercel
+1. Import the repository in [vercel.com](https://vercel.com) — configuration is automatic.
 
 ```
 d:\1 MOON🪻\
