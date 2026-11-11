@@ -3,7 +3,7 @@
    Full logic: audio, stages, photos, wishes, videos, final
    ============================================================ */
 
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
 
 /* ══════════════════════════════════════════════
    STATE
@@ -373,18 +373,21 @@ function buildStages() {
   const sLen = CONFIG.stages.length;
 
   // Distribute photos & wishes evenly across stages
-  const ppp = Math.max(1, Math.ceil(pLen / sLen));
-  const wpp = Math.ceil(wLen / sLen);
-
   CONFIG.stages.forEach((stage, si) => {
     const div = document.createElement('div');
     div.className = 'screen stage-screen';
     div.id = `screen-stage-${si}`;
 
-    const photos = CONFIG.photos.slice(si * ppp, si * ppp + ppp);
-    if (!photos.length) photos.push(CONFIG.photos[0]);
+    const startP = Math.floor(si * pLen / sLen);
+    const endP   = Math.floor((si + 1) * pLen / sLen);
+    let photos   = CONFIG.photos.slice(startP, endP);
+    if (!photos.length) photos = [CONFIG.photos[si % pLen] || CONFIG.photos[0]];
 
-    const wishes = CONFIG.wishes.slice(si * wpp, si * wpp + wpp);
+    const startW = Math.floor(si * wLen / sLen);
+    const endW   = Math.floor((si + 1) * wLen / sLen);
+    let wishes   = CONFIG.wishes.slice(startW, endW);
+    if (!wishes.length) wishes = [CONFIG.wishes[0]];
+
     const isLast = si === sLen - 1;
 
     const firstPhoto = photos[0];
@@ -613,15 +616,14 @@ window.goToStage = idx => {
   const stage = CONFIG.stages[idx];
   if (!stage) return;
   document.body.className = stage.theme || 'theme-blush';
-  if (stage.song) {
-    const isSame = audio.src && (audio.src.endsWith(stage.song) || audio.src === stage.song);
-    if (!isSame) {
-      loadSong(stage.song);
-    } else {
-      if (!isMuted && audio.volume < 0.2) fadeTo(0.62);
-      if (audio.paused) audio.play().catch(() => {});
-    }
+
+  // "Kabhi To Nazar Milao" plays continuously and uninterrupted!
+  if (audio.paused && !isMuted) {
+    startAudio('assets/songs/song1.mp3');
+  } else if (!isMuted && audio.volume < 0.2) {
+    fadeTo(0.62);
   }
+
   showScreen(`screen-stage-${idx}`);
   buildStickers(); buildChapterPills(); updateProgress();
 
@@ -651,8 +653,13 @@ window.goToFinal = () => {
   if (wishAutoTimer) clearInterval(wishAutoTimer);
   currentStageIndex = CONFIG.stages.length + 1;
   document.body.className = 'theme-blush';
-  // Replay first song softly on the final screen
-  if (CONFIG.stages[0]?.song) loadSong(CONFIG.stages[0].song);
+
+  // Keep "Kabhi To Nazar Milao" playing continuously!
+  if (audio.paused && !isMuted) {
+    startAudio('assets/songs/song1.mp3');
+  } else if (!isMuted && audio.volume < 0.2) {
+    fadeTo(0.62);
+  }
 
   // Nickname pills
   const scrollEl = document.getElementById('nickname-scroll-final');
@@ -761,15 +768,64 @@ function setupCover() {
 }
 
 /* ══════════════════════════════════════════════
+   COVER AUDIO TOGGLE ("Kabhi To Nazar Milao")
+══════════════════════════════════════════════ */
+window.toggleCoverAudio = function(e) {
+  if (e) {
+    if (typeof e.preventDefault === 'function') e.preventDefault();
+    if (typeof e.stopPropagation === 'function') e.stopPropagation();
+  }
+  const pill  = document.getElementById('cover-music-pill');
+  const label = document.getElementById('cover-music-text');
+
+  if (audio.paused) {
+    startAudio('assets/songs/song1.mp3');
+    if (pill) pill.classList.add('playing');
+    if (label) label.textContent = 'Now Playing: Kabhi To Nazar Milao 🪻';
+  } else {
+    audio.pause();
+    if (pill) pill.classList.remove('playing');
+    if (label) label.textContent = 'Play: Kabhi To Nazar Milao 🎶';
+  }
+};
+
+audio.addEventListener('play', () => {
+  const pill  = document.getElementById('cover-music-pill');
+  const label = document.getElementById('cover-music-text');
+  if (pill) pill.classList.add('playing');
+  if (label) label.textContent = 'Now Playing: Kabhi To Nazar Milao 🪻';
+});
+audio.addEventListener('pause', () => {
+  const pill  = document.getElementById('cover-music-pill');
+  const label = document.getElementById('cover-music-text');
+  if (pill) pill.classList.remove('playing');
+  if (label) label.textContent = 'Play: Kabhi To Nazar Milao 🎶';
+});
+
+document.getElementById('screen-cover')?.addEventListener('click', e => {
+  if (e.target.closest('#open-btn, .gift-wrap, #cover-music-pill')) return;
+  if (audio.paused && !isMuted && !started) {
+    startAudio('assets/songs/song1.mp3');
+  }
+}, { passive: true });
+
+/* ══════════════════════════════════════════════
    OPEN BUTTON  — the magic tap
 ══════════════════════════════════════════════ */
-document.getElementById('open-btn').addEventListener('click', e => {
+window.openExperience = function(e) {
+  if (e) {
+    if (typeof e.preventDefault === 'function') e.preventDefault();
+    if (typeof e.stopPropagation === 'function') e.stopPropagation();
+  }
   if (started) return;
   started = true;
   if (nicknameTimer) clearInterval(nicknameTimer);
 
-  launchConfetti(e.clientX, e.clientY, 120);
-  sparkleRing(e.clientX, e.clientY);
+  const cx = (e && typeof e.clientX === 'number' && e.clientX > 0) ? e.clientX : window.innerWidth / 2;
+  const cy = (e && typeof e.clientY === 'number' && e.clientY > 0) ? e.clientY : window.innerHeight / 2;
+
+  launchConfetti(cx, cy, 120);
+  sparkleRing(cx, cy);
 
   if (CONFIG.stages[0]?.song) {
     startAudio(CONFIG.stages[0].song);
@@ -778,13 +834,20 @@ document.getElementById('open-btn').addEventListener('click', e => {
   setTimeout(() => {
     goToStage(0);
     muteBtn.classList.add('visible');
-  }, 680);
-});
+  }, 450);
+};
 
-// Gift-box mini-burst on the cover even before tap
-document.getElementById('gift-wrap')?.addEventListener('click', e => {
-  if (!started) launchConfetti(e.clientX, e.clientY, 45);
-});
+const openBtn = document.getElementById('open-btn');
+if (openBtn) {
+  openBtn.addEventListener('click', window.openExperience);
+  openBtn.addEventListener('touchend', window.openExperience, { passive: false });
+}
+
+const giftWrap = document.getElementById('gift-wrap');
+if (giftWrap) {
+  giftWrap.addEventListener('click', window.openExperience);
+  giftWrap.addEventListener('touchend', window.openExperience, { passive: false });
+}
 
 /* ══════════════════════════════════════════════
    SWIPE  (touch)
@@ -832,4 +895,10 @@ setupCover();
 showScreen('screen-cover');
 updateProgress();
 
-}); // end DOMContentLoaded
+} // end initApp
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}

@@ -4,7 +4,7 @@
 //  Touch only this file to personalise everything.
 // ============================================================
 
-const CONFIG = {
+const CONFIG = window.CONFIG = {
 
   /* ── Identity ─────────────────────────────────────────── */
   name: "Ritika",
@@ -19,16 +19,10 @@ const CONFIG = {
     "dariya-ye-inayat 🪄",
   ],
   coverTagline: "thanks for existing My 11:11 🪻",
-  coverDate: "11 · 11 · 2026  🌙",
+  coverDate: "11 · 11 · Forever🌙",
 
   /* ── Music Stages ─────────────────────────────────────────
-     Drop the mp3 files into /assets/songs/
-     Song list:
-       song1.mp3 → your uploaded track
-       song2.mp3 → Maula Mere Maula (Anwar, 2007)
-       song3.mp3 → O Re Piya (Aaja Nachle, Rahat Fateh Ali Khan)
-       song4.mp3 → Tera Chehra (Adnan Sami)
-       song5.mp3 → Mann Ki Lagan (Nusrat Fateh Ali Khan)
+     Theme song: Kabhi To Nazar Milao (flawless loop across all chapters)
   ────────────────────────────────────────────────────────── */
   stages: [
     {
@@ -40,28 +34,28 @@ const CONFIG = {
     },
     {
       title: "Chapter II · Maula Mere 🌙",
-      song: "assets/songs/song2.mp3",   // ← Maula Mere Maula
+      song: "assets/songs/song1.mp3",   // Kabhi To Nazar Milao continues seamlessly
       theme: "theme-lavender",
       emoji: "🌙",
       poetLabel: "✦ Ghalib & Faiz",
     },
     {
       title: "Chapter III · O Re Piya ✨",
-      song: "assets/songs/song3.mp3",   // ← O Re Piya
+      song: "assets/songs/song1.mp3",   // Kabhi To Nazar Milao continues seamlessly
       theme: "theme-peach",
       emoji: "✨",
       poetLabel: "✦ Rumi & Neruda",
     },
     {
       title: "Chapter IV · Malika-ye-Husn 👑",
-      song: "assets/songs/song4.mp3",   // ← Tera Chehra
+      song: "assets/songs/song1.mp3",   // Kabhi To Nazar Milao continues seamlessly
       theme: "theme-sky",
       emoji: "👑",
       poetLabel: "✦ Gulzar & Tagore",
     },
     {
       title: "Chapter V · Mann Ki Lagan 🕊️",
-      song: "assets/songs/song5.mp3",   // ← Mann Ki Lagan
+      song: "assets/songs/song1.mp3",   // Kabhi To Nazar Milao continues seamlessly
       theme: "theme-sunset",
       emoji: "🕊️",
       poetLabel: "✦ Sufi & Eternal",
@@ -84,27 +78,27 @@ const CONFIG = {
     },
     {
       src: "assets/photos/photo6.jpg",
-      caption: "Tere gesuo ko chhuke jo hawa bhi gayi, use jannat naseeb hui 🌳💫",
+      caption: "Jo pal tere saath guzre, yado me kuch is trah base...chale umrbhar 🌳💫",
     },
     {
       src: "assets/photos/photo1.jpg",
-      caption: "Streetlights bhi jaante hain — tu main character hai 🌙🛣️",
+      caption: "Streetlights bhi jaante hain — aap main character hai 🌙🛣️",
     },
     {
       src: "assets/photos/photo2.jpg",
-      caption: "Pahado se khubsurat Musafir, Ritzzz 🌄💜",
+      caption: "Musafir itna sundar ho ki pahad bhi sharmaye... 🌄💜",
     },
     {
       src: "assets/photos/photo4.jpg",
-      caption: "ye pal haseen ....  🎞️🌸",
+      caption: " Bachpana tera, itrana tera, husn tera aur narajgi bhi teri....waah🎞️🌸",
     },
     {
       src: "assets/photos/photo12.jpg",
-      caption: "💜",
+      caption: "In ankho ke siva dunia me rakha kya hai....💜",
     },
     {
       src: "assets/photos/photo5.jpg",
-      caption: "Husn bhi jale jahan vo noor-ye-jahan ho aap... 🌷",
+      caption: "ye pal haseen .... 🌷",
     },
     {
       src: "assets/photos/photo13.jpg",
@@ -116,7 +110,7 @@ const CONFIG = {
     },
     {
       src: "assets/photos/photo11.jpg",
-      caption: "Jo pal tere saath guzre, yado me kuch is trah base...chale umrbhar💫",
+      caption: "Teri Khushi Se Roshan ye jahan Sara hai...💫",
     },
   ],
 
@@ -131,7 +125,7 @@ const CONFIG = {
     {
       src: "assets/videos/video2.mp4",
       poster: "assets/photos/photo13.jpg",
-      caption: "Camera bhi tumpe hi ruk jaata hai — jaadu hai tumhara 🪔✨",
+      caption: "Camera bhi aappe ruk jaata hai — Ti-lismi Husn hai 🪔✨",
       label: "Because some things deserve to be remembered 🌸",
     },
   ],
@@ -155,7 +149,7 @@ const CONFIG = {
       by: "— a truth, not a compliment",
     },
     {
-      text: "You are beautiful inside and out, and you deserve every good thing the universe has. 🦋",
+      text: "You are trully beautiful inside and out, and you deserve every good thing the universe has. 🦋",
       by: "— genuinely",
     },
     {
@@ -163,7 +157,7 @@ const CONFIG = {
       by: "— always",
     },
     {
-      text: "There is something extraordinary about the way you move through the world. Jaise asmaan ka tukda aa gaya zameen pe. ✨",
+      text: "There is something extraordinary about the way you move through the world. Jaise Ho koi Mahtaab.... ✨",
       by: "— original",
     },
 
@@ -381,14 +375,14 @@ const CONFIG = {
       by: "— always",
     },
     {
-      text: "Bas yun hi reh —\nmeri crazy lady, mera chaand,\nmeri Ritzzz.\nHamesha. 🪻💜",
+      text: "Just be the Way you are —\nThe crazy lady, The Moon,\n& Ritzzz.\nHamesha. 🪻💜",
       by: "— tumhara 11:11",
     },
   ],
 
   /* ── Final messages ────────────────────────────────────── */
-  finalMessage: "✨ {name}, you are truly one of a kind.\nThank you for being you. 💖",
-  finalHindiLine: "Bas yun hi reh — 🌙\nMeri crazy lady, mera chaand, meri Ritzzz.\nHamesha. 💜🪻",
+  finalMessage: "✨Ritika, you are truly one of a kind.\nThank you for being you. 💖",
+  finalHindiLine: "Bas yun hi rehna — 🌙\nMy crazy lady, Mere chaand, The Glamrous Ritslyn._ve-\n Be Yourself.... 💜🪻",
 
   /* ── Song note (shown if song file missing) ──────────────
      Tell the user which file to drop where:

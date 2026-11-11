@@ -37,7 +37,7 @@
 <body class="theme-blush">
 
   <!-- ░░ Loading screen ░░ -->
-  <div id="loading">
+  <div id="loading" onclick="this.classList.add('hidden'); setTimeout(()=>this.remove(), 400);">
     <div class="loading-emoji">🪻</div>
     <div class="loading-text">Something special is loading…</div>
     <div class="loading-dots"><span></span><span></span><span></span></div>
@@ -76,7 +76,7 @@
     <div class="cover-content">
 
       <!-- Floating gift box SVG (sits just above the panel) -->
-      <div class="gift-wrap" id="gift-wrap" role="img" aria-label="Gift box">
+      <div class="gift-wrap" id="gift-wrap" onclick="openExperience(event)" role="button" tabindex="0" aria-label="Tap to Open Gift">
         <svg class="gift-box-svg" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
           <!-- Box body -->
           <rect x="18" y="72" width="124" height="78" rx="12" fill="url(#bG)" filter="url(#gf)"/>
@@ -127,7 +127,7 @@
 
       <!-- CTA button with pulse rings -->
       <div class="open-btn-wrap">
-        <button class="open-btn" id="open-btn">Tap to Open 💖</button>
+        <button class="open-btn" id="open-btn" onclick="openExperience(event)">Tap to Open 💖</button>
       </div>
 
       <!-- Date stamp -->
