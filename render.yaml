@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: ritika-11-11
+    env: static
+    buildCommand: ""
+    staticPublishPath: .

@@ -112,6 +112,18 @@ const CONFIG = window.CONFIG = {
       src: "assets/photos/photo11.jpg",
       caption: "Teri Khushi Se Roshan ye jahan Sara hai...💫",
     },
+    {
+      src: "assets/photos/photo14.jpg",
+      caption: "Ek aisi muskaan jo kisi bhi aam din ko tyohaar bana de 🪔✨",
+    },
+    {
+      src: "assets/photos/photo15.jpg",
+      caption: "Sadgi mein bhi itni khoobsurati — kudrat ka kamaal hai tu 🌸💫",
+    },
+    {
+      src: "assets/photos/photo16.jpg",
+      caption: "Hasti raho yunhi, tumhari hasi sabse pyari dua hai 🪻💜",
+    },
   ],
 
   /* ── Videos ──────────────────────────────────────────── */
