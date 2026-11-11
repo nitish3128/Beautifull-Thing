@@ -200,6 +200,15 @@ function buildStickers() {
   for (let i = 0; i < 18; i++) {
     const s   = document.createElement('span'); s.className = 'sticker';
     s.textContent = STICKERS[i % STICKERS.length];
+    // Click to dismiss sticker
+    s.style.pointerEvents = 'auto';
+    s.style.cursor = 'pointer';
+    s.addEventListener('click', () => {
+      s.style.transition = 'opacity .3s ease, transform .3s ease';
+      s.style.opacity = '0';
+      s.style.transform += ' scale(0)';
+      setTimeout(() => s.remove(), 320);
+    });
     const left  = Math.random() * 94;
     const top   = Math.random() * 94;
     const dur   = (Math.random() * 6 + 4).toFixed(1);
@@ -497,12 +506,13 @@ function buildStages() {
             <div class="video-card" id="vcard-${vi}">
               <div class="video-wrap">
                 <video id="vid-${vi}" src="${v.src}" poster="${v.poster || ''}"
-                  preload="metadata" playsinline webkit-playsinline loop muted
+                  preload="metadata" loop muted
                   onerror="this.closest('.video-card').classList.add('vid-error')">
                 </video>
                 <div class="vid-overlay" id="voverlay-${vi}" onclick="toggleVideo(${vi})">
                   <div class="vid-play-btn">▶</div>
                 </div>
+                <button class="vid-fs-btn" id="vfs-${vi}" title="Fullscreen" onclick="requestVidFullscreen(${vi})">⛶</button>
               </div>
               <div class="video-label">${v.label}</div>
               <div class="video-caption">${v.caption}</div>
@@ -515,6 +525,19 @@ function buildStages() {
     }
   });
 }
+
+/* ══════════════════════════════════════════════
+   VIDEO FULLSCREEN
+══════════════════════════════════════════════ */
+window.requestVidFullscreen = vi => {
+  const vid = document.getElementById(`vid-${vi}`);
+  if (!vid) return;
+  if (vid.requestFullscreen)            vid.requestFullscreen();
+  else if (vid.webkitRequestFullscreen) vid.webkitRequestFullscreen();
+  else if (vid.webkitEnterFullscreen)   vid.webkitEnterFullscreen(); // iOS Safari
+  else if (vid.mozRequestFullScreen)    vid.mozRequestFullScreen();
+  else if (vid.msRequestFullscreen)     vid.msRequestFullscreen();
+};
 
 /* ══════════════════════════════════════════════
    VIDEO TOGGLE  (synced with "Lagi Tumse Man Ki Lagan")

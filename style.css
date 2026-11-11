@@ -605,6 +605,32 @@ body.theme-sunset   { background: linear-gradient(135deg,#FFE2E8,#FFD6EA,#FFF2E0
   color:var(--text-mid); text-align:center; padding:0 22px 20px; line-height:1.65;
 }
 
+/* Fullscreen button on video cards */
+.vid-fs-btn {
+  position: absolute;
+  top: 10px; right: 10px;
+  z-index: 12;
+  background: rgba(0,0,0,0.45);
+  border: none; border-radius: 8px;
+  color: #fff;
+  font-size: 1.3rem;
+  width: 38px; height: 38px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transition: opacity .25s ease;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.video-wrap:hover .vid-fs-btn,
+.video-wrap.has-played .vid-fs-btn {
+  opacity: 1;
+}
+/* Always show on touch devices */
+@media (hover: none) {
+  .vid-fs-btn { opacity: 0.75; }
+}
+
 .video-card.vid-error .video-wrap::after {
   content:'🎬 Video loading…'; position:absolute; inset:0;
   display:flex; align-items:center; justify-content:center;
@@ -710,7 +736,7 @@ body.theme-sunset   { background: linear-gradient(135deg,#FFE2E8,#FFD6EA,#FFF2E0
 
 /* Stickers */
 .sticker {
-  position:absolute; font-size:clamp(1rem,3.8vw,1.9rem); pointer-events:none; opacity:.78;
+  position:absolute; font-size:clamp(1rem,3.8vw,1.9rem); pointer-events:auto; opacity:.78; cursor:pointer; user-select:none;
   animation:stickerFloat var(--dur,6s) ease-in-out var(--delay,0s) infinite alternate;
 }
 @keyframes stickerFloat {
