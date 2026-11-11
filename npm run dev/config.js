@@ -19,7 +19,7 @@ const CONFIG = window.CONFIG = {
     "dariya-ye-inayat 🪄",
   ],
   coverTagline: "thanks for existing My 11:11 🪻",
-  coverDate: "11 · 11 · Forever🌙",
+  coverDate: "11 · 11 · Forever 🌙",
 
   /* ── Music Stages ─────────────────────────────────────────
      Theme song: Kabhi To Nazar Milao (flawless loop across all chapters)
@@ -395,11 +395,11 @@ const CONFIG = window.CONFIG = {
     /* ── Closing ── */
     {
       text: "\"The most beautiful thing in the world\nis a heart that is both strong and kind.\"\nYours is both, Ritika. Both. 💜",
-      by: "— always",
+      by: "— Stupid Boy..",
     },
     {
-      text: "Just be the Way you are —\nThe crazy lady, The Moon,\n& Ritzzz.\nHamesha. 🪻💜",
-      by: "— tumhara 11:11",
+      text: "Just be the Way you are —\nThe crazy lady, The Moon,\n& Ritzzz.\nAlways.... 🪻💜",
+      by: "— Nitish T.",
     },
   ],
 

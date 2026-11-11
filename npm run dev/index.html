@@ -131,7 +131,7 @@
       </div>
 
       <!-- Date stamp -->
-      <div class="date-badge">11 · 11 · 2026 &nbsp;🌙</div>
+      <div class="date-badge">11 · 11 · Forever &nbsp;🌙</div>
 
     </div><!-- /cover-content -->
   </section>
@@ -192,6 +192,7 @@
         <button class="capsule-tab-btn active" id="tab-btn-notes" onclick="switchCapsuleTab('notes')">💌 Shared Notes</button>
         <button class="capsule-tab-btn" id="tab-btn-jukebox" onclick="switchCapsuleTab('jukebox')">🎵 Song Vault</button>
         <button class="capsule-tab-btn" id="tab-btn-wishjar" onclick="switchCapsuleTab('wishjar')">⭐ 11:11 Wish Jar</button>
+        <button class="capsule-tab-btn" id="tab-btn-moments" onclick="goToVideos()">🎬 Special Moments</button>
       </div>
 
       <!-- TAB 1: SHARED NOTES -->
@@ -324,6 +325,56 @@
 
     </div>
   </section>
+
+  <!-- ════════════════════════════════════════════
+       PUBLISH SPECIAL MOMENT MODAL
+  ════════════════════════════════════════════ -->
+  <div id="publish-video-modal" class="publish-video-modal" style="display:none;" onclick="handleModalBackdropClick(event)">
+    <div class="publish-modal-card" onclick="event.stopPropagation()">
+      <div class="publish-modal-header">
+        <h3><span>📹</span> Publish a Video Moment</h3>
+        <button class="close-modal-btn" onclick="closePublishVideoModal()" aria-label="Close">×</button>
+      </div>
+      <p class="publish-modal-sub">Add a video moment to our Special Moments gallery — stored forever in this browser 💫</p>
+      
+      <div class="publish-source-tabs">
+        <button type="button" class="source-tab-btn active" id="btn-src-upload" onclick="switchVideoSourceTab('upload')">📁 Upload Video File</button>
+        <button type="button" class="source-tab-btn" id="btn-src-url" onclick="switchVideoSourceTab('url')">🔗 Video Link / URL</button>
+      </div>
+
+      <div id="video-upload-pane" class="video-source-pane">
+        <label class="file-drop-zone" for="user-vid-file" id="vid-file-drop">
+          <span class="drop-icon">🎬</span>
+          <span class="drop-text" id="vid-file-label">Choose video file (MP4, MOV, WebM)</span>
+          <span class="drop-sub">Tap to select from phone gallery or files</span>
+          <input type="file" id="user-vid-file" accept="video/*" onchange="handleUserVidSelected(event)" style="display:none;">
+        </label>
+      </div>
+
+      <div id="video-url-pane" class="video-source-pane" style="display:none;">
+        <input type="url" id="user-vid-url" class="capsule-input" placeholder="Paste direct video link (e.g. https://.../video.mp4)" oninput="handleUserVidUrlInput(this.value)">
+      </div>
+
+      <div class="vid-preview-box" id="vid-preview-box" style="display:none;">
+        <video id="vid-preview-el" controls playsinline muted></video>
+      </div>
+
+      <div class="publish-form-fields">
+        <input type="text" id="user-vid-title" class="capsule-input" placeholder="Moment title (e.g. Our Special Walk 🌸)">
+        <textarea id="user-vid-caption" class="capsule-textarea" rows="2" placeholder="Caption / memory line (e.g. Kyunki yeh pal hamesha yaad rahega 💫)"></textarea>
+        
+        <label class="publish-audio-opt">
+          <input type="checkbox" id="user-vid-audio-opt">
+          <span>Keep video's original sound (uncheck to sync with Lag Jaa Gale soundtrack)</span>
+        </label>
+      </div>
+
+      <div class="publish-modal-actions">
+        <button type="button" class="cancel-modal-btn" onclick="closePublishVideoModal()">Cancel</button>
+        <button type="button" class="submit-publish-btn" id="btn-submit-publish" onclick="submitPublishVideo()">Publish Moment 🚀✨</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ═══════════════════ Scripts (order matters) ═══════════════════ -->
   <script src="config.js"></script>

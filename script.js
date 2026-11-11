@@ -200,15 +200,16 @@ function buildStickers() {
   for (let i = 0; i < 18; i++) {
     const s   = document.createElement('span'); s.className = 'sticker';
     s.textContent = STICKERS[i % STICKERS.length];
-    // Click to dismiss sticker
+    // Click or tap to dismiss sticker and remove blind spots
     s.style.pointerEvents = 'auto';
     s.style.cursor = 'pointer';
-    s.addEventListener('click', () => {
-      s.style.transition = 'opacity .3s ease, transform .3s ease';
-      s.style.opacity = '0';
-      s.style.transform += ' scale(0)';
-      setTimeout(() => s.remove(), 320);
-    });
+    const dismissSticker = (e) => {
+      if (e) e.stopPropagation();
+      s.classList.add('dismissed');
+      setTimeout(() => s.remove(), 260);
+    };
+    s.addEventListener('click', dismissSticker);
+    s.addEventListener('touchend', dismissSticker, { passive: true });
     const left  = Math.random() * 94;
     const top   = Math.random() * 94;
     const dur   = (Math.random() * 6 + 4).toFixed(1);
@@ -501,6 +502,11 @@ function buildStages() {
           <h2 class="stage-title">Special Moments · In Motion 🎥</h2>
         </div>
         <p class="video-screen-sub">Kyunki kuch pal sirf yaad nahi, mahsoos bhi hote hain 🌸</p>
+        <div class="video-actions-bar">
+          <button class="publish-moment-btn" onclick="openPublishVideoModal()">
+            <span class="btn-icon">📹</span> Publish Our Video Moment ✨
+          </button>
+        </div>
         <div class="video-grid" id="video-grid">
           ${CONFIG.videos.map((v, vi) => `
             <div class="video-card" id="vcard-${vi}">
@@ -522,7 +528,268 @@ function buildStages() {
         <button class="next-stage-btn" onclick="goToStage(2)">Next Chapter ✨</button>
       `;
       container.appendChild(vdiv);
+      renderUserVideos();
     }
+  });
+}
+
+/* ══════════════════════════════════════════════
+   USER SPECIAL MOMENTS VIDEO PUBLISHING (IndexedDB)
+══════════════════════════════════════════════ */
+const MOMENTS_DB_NAME = 'MoonRitikaMomentsDB';
+const MOMENTS_DB_VER = 1;
+const MOMENTS_STORE = 'moments_videos';
+
+function openMomentsDB() {
+  return new Promise((resolve) => {
+    if (!window.indexedDB) {
+      resolve(null);
+      return;
+    }
+    const req = indexedDB.open(MOMENTS_DB_NAME, MOMENTS_DB_VER);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(MOMENTS_STORE)) {
+        db.createObjectStore(MOMENTS_STORE, { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => resolve(null);
+  });
+}
+
+async function saveUserMomentRecord(record) {
+  try {
+    const db = await openMomentsDB();
+    if (!db) {
+      const list = JSON.parse(localStorage.getItem('user_moment_videos') || '[]');
+      list.push(record);
+      localStorage.setItem('user_moment_videos', JSON.stringify(list));
+      return true;
+    }
+    return new Promise((resolve) => {
+      const tx = db.transaction(MOMENTS_STORE, 'readwrite');
+      tx.objectStore(MOMENTS_STORE).put(record);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    });
+  } catch (err) {
+    console.error('Error saving user moment:', err);
+    return false;
+  }
+}
+
+async function loadAllUserMoments() {
+  try {
+    const db = await openMomentsDB();
+    if (!db) {
+      return JSON.parse(localStorage.getItem('user_moment_videos') || '[]');
+    }
+    return new Promise((resolve) => {
+      const tx = db.transaction(MOMENTS_STORE, 'readonly');
+      const req = tx.objectStore(MOMENTS_STORE).getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => resolve([]);
+    });
+  } catch (err) {
+    console.error('Error loading moments:', err);
+    return [];
+  }
+}
+
+async function deleteUserMomentRecord(id) {
+  try {
+    const db = await openMomentsDB();
+    if (!db) {
+      let list = JSON.parse(localStorage.getItem('user_moment_videos') || '[]');
+      list = list.filter(m => m.id !== id);
+      localStorage.setItem('user_moment_videos', JSON.stringify(list));
+      return true;
+    }
+    return new Promise((resolve) => {
+      const tx = db.transaction(MOMENTS_STORE, 'readwrite');
+      tx.objectStore(MOMENTS_STORE).delete(id);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    });
+  } catch (err) {
+    console.error('Error deleting moment:', err);
+    return false;
+  }
+}
+
+let pendingVideoBlob = null;
+let pendingVideoUrl = '';
+
+window.openPublishVideoModal = () => {
+  const modal = document.getElementById('publish-video-modal');
+  if (modal) modal.style.display = 'flex';
+  pendingVideoBlob = null;
+  pendingVideoUrl = '';
+  const label = document.getElementById('vid-file-label');
+  if (label) label.textContent = 'Choose video file (MP4, MOV, WebM)';
+  const prevBox = document.getElementById('vid-preview-box');
+  if (prevBox) prevBox.style.display = 'none';
+  const fileInput = document.getElementById('user-vid-file');
+  if (fileInput) fileInput.value = '';
+  const urlInput = document.getElementById('user-vid-url');
+  if (urlInput) urlInput.value = '';
+  const titleInput = document.getElementById('user-vid-title');
+  if (titleInput) titleInput.value = '';
+  const captionInput = document.getElementById('user-vid-caption');
+  if (captionInput) captionInput.value = '';
+};
+
+window.closePublishVideoModal = () => {
+  const modal = document.getElementById('publish-video-modal');
+  if (modal) modal.style.display = 'none';
+  const prevVid = document.getElementById('vid-preview-el');
+  if (prevVid) { prevVid.pause(); prevVid.src = ''; }
+};
+
+window.handleModalBackdropClick = (e) => {
+  if (e.target.id === 'publish-video-modal') {
+    closePublishVideoModal();
+  }
+};
+
+window.switchVideoSourceTab = (tab) => {
+  const btnUp = document.getElementById('btn-src-upload');
+  const btnUrl = document.getElementById('btn-src-url');
+  const paneUp = document.getElementById('video-upload-pane');
+  const paneUrl = document.getElementById('video-url-pane');
+  if (tab === 'upload') {
+    btnUp.classList.add('active');
+    btnUrl.classList.remove('active');
+    paneUp.style.display = 'block';
+    paneUrl.style.display = 'none';
+  } else {
+    btnUrl.classList.add('active');
+    btnUp.classList.remove('active');
+    paneUrl.style.display = 'block';
+    paneUrl.style.display = 'none';
+  }
+};
+
+window.handleUserVidSelected = (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  pendingVideoBlob = file;
+  pendingVideoUrl = '';
+  const label = document.getElementById('vid-file-label');
+  if (label) label.textContent = `Selected: ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)}MB)`;
+  
+  const blobUrl = URL.createObjectURL(file);
+  const prevBox = document.getElementById('vid-preview-box');
+  const prevVid = document.getElementById('vid-preview-el');
+  if (prevBox && prevVid) {
+    prevVid.src = blobUrl;
+    prevBox.style.display = 'block';
+  }
+};
+
+window.handleUserVidUrlInput = (url) => {
+  pendingVideoUrl = url.trim();
+  pendingVideoBlob = null;
+  const prevBox = document.getElementById('vid-preview-box');
+  const prevVid = document.getElementById('vid-preview-el');
+  if (prevBox && prevVid && pendingVideoUrl) {
+    prevVid.src = pendingVideoUrl;
+    prevBox.style.display = 'block';
+  }
+};
+
+window.submitPublishVideo = async () => {
+  const title = document.getElementById('user-vid-title')?.value.trim() || 'Our Special Moment 🌸';
+  const caption = document.getElementById('user-vid-caption')?.value.trim() || 'A memory that lives forever in motion ✨';
+  const keepSound = !!document.getElementById('user-vid-audio-opt')?.checked;
+
+  if (!pendingVideoBlob && !pendingVideoUrl) {
+    alert('Please choose a video file or paste a video link first! 📹');
+    return;
+  }
+
+  const id = 'usr_' + Date.now();
+  const record = {
+    id,
+    label: title,
+    caption: caption,
+    videoBlob: pendingVideoBlob,
+    videoUrl: pendingVideoUrl,
+    useOriginalAudio: keepSound,
+    timestamp: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  };
+
+  const btn = document.getElementById('btn-submit-publish');
+  if (btn) btn.textContent = 'Saving moment… 💫';
+
+  await saveUserMomentRecord(record);
+
+  if (btn) btn.textContent = 'Publish Moment 🚀✨';
+  closePublishVideoModal();
+
+  // Render immediately to video grid
+  await renderUserVideos();
+
+  // Celebration
+  launchConfetti(window.innerWidth / 2, window.innerHeight / 2, 80);
+  heartRain(18);
+
+  // Scroll to new video
+  setTimeout(() => {
+    const newEl = document.getElementById(`vcard-${id}`);
+    if (newEl) newEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 350);
+};
+
+window.deleteUserVideo = async (id) => {
+  if (!confirm('Are you sure you want to remove this video moment? 🎬')) return;
+  await deleteUserMomentRecord(id);
+  const el = document.getElementById(`vcard-${id}`);
+  if (el) {
+    el.style.transition = 'all .4s ease';
+    el.style.opacity = '0';
+    el.style.transform = 'scale(0.8)';
+    setTimeout(() => el.remove(), 400);
+  }
+};
+
+async function renderUserVideos() {
+  const grid = document.getElementById('video-grid');
+  if (!grid) return;
+
+  grid.querySelectorAll('.user-published-card').forEach(c => c.remove());
+
+  const moments = await loadAllUserMoments();
+  moments.forEach(m => {
+    let videoSrc = m.videoUrl;
+    if (m.videoBlob) {
+      videoSrc = URL.createObjectURL(m.videoBlob);
+    }
+    if (!videoSrc) return;
+
+    const card = document.createElement('div');
+    card.className = 'video-card user-published-card';
+    card.id = `vcard-${m.id}`;
+    card.innerHTML = `
+      <div class="user-video-badge">
+        <span>💜 Published Moment · ${m.timestamp || ''}</span>
+        <button class="delete-user-vid-btn" onclick="deleteUserVideo('${m.id}')" title="Delete moment">×</button>
+      </div>
+      <div class="video-wrap">
+        <video id="vid-${m.id}" src="${videoSrc}" preload="metadata" loop muted
+          ${m.useOriginalAudio ? 'data-original-audio="true"' : ''}
+          onerror="this.closest('.video-card').classList.add('vid-error')">
+        </video>
+        <div class="vid-overlay" id="voverlay-${m.id}" onclick="toggleVideo('${m.id}')">
+          <div class="vid-play-btn">▶</div>
+        </div>
+        <button class="vid-fs-btn" id="vfs-${m.id}" title="Fullscreen" onclick="requestVidFullscreen('${m.id}')">⛶</button>
+      </div>
+      <div class="video-label">${m.label}</div>
+      <div class="video-caption">${m.caption}</div>
+    `;
+    grid.appendChild(card);
   });
 }
 
@@ -540,7 +807,7 @@ window.requestVidFullscreen = vi => {
 };
 
 /* ══════════════════════════════════════════════
-   VIDEO TOGGLE  (synced with "Lagi Tumse Man Ki Lagan")
+   VIDEO TOGGLE  (synced with "Lag Jaa Gale Instrumental Mix")
 ══════════════════════════════════════════════ */
 window.toggleVideo = vi => {
   const vid     = document.getElementById(`vid-${vi}`);
@@ -550,15 +817,16 @@ window.toggleVideo = vi => {
 
   if (vid.paused) {
     // 1. Pause any other video
-    document.querySelectorAll('video').forEach((v, i) => {
-      if (i !== parseInt(vi)) {
+    document.querySelectorAll('video').forEach(v => {
+      if (v !== vid) {
         v.pause();
       }
     });
 
-    // 2. Configure video loop and mute
+    // 2. Configure video loop and audio
+    const useOrig = vid.getAttribute('data-original-audio') === 'true';
     vid.loop = true;
-    vid.muted = true;
+    vid.muted = !useOrig;
     vid.controls = true;
     if (wrap) wrap.classList.add('has-played');
     if (overlay) {
@@ -571,8 +839,8 @@ window.toggleVideo = vi => {
       audio.pause();
     });
 
-    // 4. Start "Lagi Tumse Man Ki Lagan"
-    if (typeof videoSongAudio !== 'undefined' && videoSongAudio) {
+    // 4. Start soundtrack if original audio is NOT used
+    if (!useOrig && typeof videoSongAudio !== 'undefined' && videoSongAudio) {
       videoSongAudio.muted = isMuted;
       videoSongAudio.play().catch(() => {});
     }
@@ -774,6 +1042,7 @@ window.goToVideos = () => {
   currentStageIndex = 'videos';
   document.body.className = 'theme-lavender';
   showScreen('screen-videos');
+  renderUserVideos();
   buildStickers();
   buildChapterPills();
   updateProgress();
@@ -868,6 +1137,8 @@ function setupCover() {
   animateCoverName();
   const tagEl = document.querySelector('.cover-glass-badge');
   if (tagEl && CONFIG.coverTagline) tagEl.textContent = CONFIG.coverTagline;
+  const dateEl = document.querySelector('.date-badge');
+  if (dateEl && CONFIG.coverDate) dateEl.textContent = CONFIG.coverDate;
   const coverEl = document.getElementById('screen-cover');
   const floats  = ['💜','🌸','✨','💫','🌷','🦋','⭐','💝','🎀','💖','🌈','🍀','🪻','👑','🌹','🌙'];
   const positions = [
