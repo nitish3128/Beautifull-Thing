@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#C9B8F5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="description" content="A special appreciation for Ritika — thanks for existing My 11:11 🪻">
+
+  <!-- Open Graph / WhatsApp Preview -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="🪻 Ritika — thanks for existing My 11:11">
+  <meta property="og:description" content="A magical, musical journey celebrating the one and only Ritika. 🌙✨">
+  <meta property="og:image" content="assets/photos/cover.jpg">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="🪻 Ritika — thanks for existing My 11:11">
+  <meta name="twitter:description" content="A magical celebration made just for you. 🌙✨">
+  <meta name="twitter:image" content="assets/photos/cover.jpg">
+
+  <title>🪻 Ritika — thanks for existing My 11:11</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Dancing+Script:wght@600;700&family=Quicksand:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪻</text></svg>">
+  <link rel="apple-touch-icon" href="assets/photos/cover.jpg">
+</head>
+<body class="theme-blush">
+
+  <!-- ░░ Loading screen ░░ -->
+  <div id="loading" onclick="this.classList.add('hidden'); setTimeout(()=>this.remove(), 400);">
+    <div class="loading-emoji">🪻</div>
+    <div class="loading-text">Something special is loading…</div>
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+  </div>
+
+  <!-- ░░ Background particles (always visible) ░░ -->
+  <canvas id="particle-canvas"></canvas>
+
+  <!-- ░░ Progress bar ░░ -->
+  <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+
+  <!-- ░░ Mute button ░░ -->
+  <button id="mute-btn" aria-label="Toggle music"><span class="note">🎵</span></button>
+
+  <!-- ░░ Floating stickers layer ░░ -->
+  <div class="floaters" id="floaters" aria-hidden="true"></div>
+
+  <!-- ════════════════════════════════════════════
+       COVER SCREEN
+  ════════════════════════════════════════════ -->
+  <section class="screen active" id="screen-cover">
+
+    <!-- Full-bleed Diwali portrait background -->
+    <div class="cover-bg-photo" aria-hidden="true"></div>
+
+    <!-- Aurora glow overlay -->
+    <div class="aurora-layer" aria-hidden="true"></div>
+
+    <!-- Animated bokeh stars -->
+    <canvas id="bokeh-canvas" aria-hidden="true"></canvas>
+
+    <!-- Moon badge (top-left) -->
+    <div class="moon-badge" aria-label="moon">🌙</div>
+
+    <!-- ── Bottom-anchored content panel ── -->
+    <div class="cover-content">
+
+      <!-- Floating gift box SVG (sits just above the panel) -->
+      <div class="gift-wrap" id="gift-wrap" onclick="openExperience(event)" role="button" tabindex="0" aria-label="Tap to Open Gift">
+        <svg class="gift-box-svg" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Box body -->
+          <rect x="18" y="72" width="124" height="78" rx="12" fill="url(#bG)" filter="url(#gf)"/>
+          <!-- Lid -->
+          <rect x="12" y="54" width="136" height="28" rx="10" fill="url(#lG)"/>
+          <!-- Ribbon vertical -->
+          <rect x="72" y="54" width="16" height="96" rx="4" fill="url(#rG)"/>
+          <!-- Ribbon horizontal -->
+          <rect x="12" y="62" width="136" height="12" rx="4" fill="url(#rG)"/>
+          <!-- Bow left loop -->
+          <ellipse cx="58" cy="46" rx="22" ry="14" fill="url(#boG)" transform="rotate(-20 58 46)"/>
+          <!-- Bow right loop -->
+          <ellipse cx="102" cy="46" rx="22" ry="14" fill="url(#boG)" transform="rotate(20 102 46)"/>
+          <!-- Bow centre knot -->
+          <circle cx="80" cy="52" r="12" fill="url(#bcG)"/>
+          <!-- Sparkles on box -->
+          <text x="28"  y="118" font-size="16" opacity="0.65">✨</text>
+          <text x="112" y="108" font-size="13" opacity="0.55">⭐</text>
+          <text x="50"  y="136" font-size="11" opacity="0.50">💜</text>
+          <text x="96"  y="142" font-size="10" opacity="0.42">🌸</text>
+          <defs>
+            <linearGradient id="bG"  x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#E8C8FF"/><stop offset="100%" stop-color="#C8A0F0"/></linearGradient>
+            <linearGradient id="lG"  x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#D4B0F5"/><stop offset="100%" stop-color="#B890E8"/></linearGradient>
+            <linearGradient id="rG"  x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FF9EC8"/><stop offset="100%" stop-color="#E060C0"/></linearGradient>
+            <linearGradient id="boG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FF80C0"/><stop offset="100%" stop-color="#D040A0"/></linearGradient>
+            <radialGradient id="bcG" cx="50%" cy="50%"><stop offset="0%" stop-color="#FFB0D8"/><stop offset="100%" stop-color="#E060B0"/></radialGradient>
+            <filter id="gf" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="6" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+        </svg>
+      </div>
+
+      <!-- Tagline pill -->
+      <div class="glass-badge cover-glass-badge">🪻 &nbsp;thanks for existing My 11:11&nbsp; 🪻</div>
+
+      <!-- Big shimmer name — letters animated by JS -->
+      <h1 class="cover-name">
+        <span class="shimmer-text" id="cover-name-el">Ritika</span>
+      </h1>
+
+      <!-- Rotating nicknames -->
+      <div class="nickname-ticker" id="nickname-ticker">My 11:11 🪻</div>
+
+      <!-- Subtitle -->
+      <p class="cover-sub">a little something, made just for you ✨</p>
+
+      <!-- CTA button with pulse rings -->
+      <div class="open-btn-wrap">
+        <button class="open-btn" id="open-btn" onclick="openExperience(event)">Tap to Open 💖</button>
+      </div>
+
+      <!-- Date stamp -->
+      <div class="date-badge">11 · 11 · 2026 &nbsp;🌙</div>
+
+    </div><!-- /cover-content -->
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       STAGE + VIDEO SCREENS  — built dynamically by script.js
+  ════════════════════════════════════════════ -->
+  <div id="stages-container"></div>
+
+  <!-- ════════════════════════════════════════════
+       FINAL SCREEN
+  ════════════════════════════════════════════ -->
+  <section class="screen" id="screen-final">
+
+    <div class="final-emoji-burst">🎉🌸✨💖🦋🌟🪻👑</div>
+
+    <h2 class="final-message">
+      ✨ <span class="shimmer-text">Ritika</span>, you are truly one of a kind.<br>
+      Thank you for being you. 💖
+    </h2>
+
+    <div class="final-glass-card">
+      <!-- Hindi closing line — updated by JS from config -->
+      <p class="final-hindi-line" id="final-hindi-line">
+        Bas yun hi reh — 🌙<br>
+        Meri crazy lady, mera chaand, meri Ritzzz.<br>
+        Hamesha. 💜🪻
+      </p>
+
+      <!-- All her nicknames as pretty pills — filled by JS -->
+      <div class="nickname-scroll-final" id="nickname-scroll-final"></div>
+
+      <p class="final-credit">Made with 💜 &amp; too many late-night thoughts</p>
+    </div>
+
+    <button class="replay-btn" onclick="replayAll()">↺ Replay from the beginning ✨</button>
+
+  </section>
+
+  <!-- ═══════════════════ Scripts (order matters) ═══════════════════ -->
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+
+</body>
+</html>
