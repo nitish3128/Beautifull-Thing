@@ -136,7 +136,7 @@ const CONFIG = window.CONFIG = {
     },
     {
       src: "assets/videos/video2.mp4",
-      poster: "assets/photos/photo13.jpg",
+      poster: "assets/photos/video2_poster.jpg",
       caption: "Camera bhi aappe ruk jaata hai — Ti-lismi Husn hai 🪔✨",
       label: "Because some things deserve to be remembered 🌸",
     },
