@@ -768,46 +768,23 @@ function setupCover() {
 }
 
 /* ══════════════════════════════════════════════
-   COVER AUDIO TOGGLE ("Kabhi To Nazar Milao")
+   AUTO-START "Kabhi To Nazar Milao" WITH PROJECT
 ══════════════════════════════════════════════ */
-window.toggleCoverAudio = function(e) {
-  if (e) {
-    if (typeof e.preventDefault === 'function') e.preventDefault();
-    if (typeof e.stopPropagation === 'function') e.stopPropagation();
-  }
-  const pill  = document.getElementById('cover-music-pill');
-  const label = document.getElementById('cover-music-text');
-
-  if (audio.paused) {
-    startAudio('assets/songs/song1.mp3');
-    if (pill) pill.classList.add('playing');
-    if (label) label.textContent = 'Now Playing: Kabhi To Nazar Milao 🪻';
-  } else {
-    audio.pause();
-    if (pill) pill.classList.remove('playing');
-    if (label) label.textContent = 'Play: Kabhi To Nazar Milao 🎶';
-  }
-};
-
-audio.addEventListener('play', () => {
-  const pill  = document.getElementById('cover-music-pill');
-  const label = document.getElementById('cover-music-text');
-  if (pill) pill.classList.add('playing');
-  if (label) label.textContent = 'Now Playing: Kabhi To Nazar Milao 🪻';
-});
-audio.addEventListener('pause', () => {
-  const pill  = document.getElementById('cover-music-pill');
-  const label = document.getElementById('cover-music-text');
-  if (pill) pill.classList.remove('playing');
-  if (label) label.textContent = 'Play: Kabhi To Nazar Milao 🎶';
-});
-
-document.getElementById('screen-cover')?.addEventListener('click', e => {
-  if (e.target.closest('#open-btn, .gift-wrap, #cover-music-pill')) return;
-  if (audio.paused && !isMuted && !started) {
+function autoStartThemeSong() {
+  if (audio.paused && !isMuted) {
     startAudio('assets/songs/song1.mp3');
   }
-}, { passive: true });
+}
+
+// 1. Try starting right on load
+setTimeout(autoStartThemeSong, 400);
+
+// 2. Browser autoplay fallback: start on any first touch, click, or tap anywhere
+['click', 'touchstart', 'touchend', 'pointerdown'].forEach(evt => {
+  window.addEventListener(evt, () => {
+    autoStartThemeSong();
+  }, { once: true, passive: true });
+});
 
 /* ══════════════════════════════════════════════
    OPEN BUTTON  — the magic tap
