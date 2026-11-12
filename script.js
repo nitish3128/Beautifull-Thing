@@ -553,6 +553,14 @@ function buildChapterPills() {
   });
   html += `<button class="chapter-pill${currentStageIndex === 'capsule' ? ' active' : ''}" onclick="goToCapsule()">💌 11:11 Space</button>`;
   el.innerHTML = html;
+
+  // Auto-scroll active pill into view smoothly on phone
+  requestAnimationFrame(() => {
+    const activePill = el.querySelector('.chapter-pill.active');
+    if (activePill && typeof activePill.scrollIntoView === 'function') {
+      activePill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  });
 }
 
 /* ══════════════════════════════════════════════

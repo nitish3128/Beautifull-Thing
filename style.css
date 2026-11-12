@@ -628,32 +628,82 @@ body.theme-sunset   { background: linear-gradient(135deg,#FFE2E8,#FFD6EA,#FFF2E0
 
 /* Next stage */
 .next-stage-btn {
-  padding:17px 46px; border-radius:var(--r-pill); border:2px solid var(--glass-border);
+  padding:15px 42px; border-radius:var(--r-pill); border:2px solid var(--glass-border);
   background:linear-gradient(135deg,rgba(255,255,255,.42),rgba(255,220,255,.42));
   backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-  font-family:var(--font-head); font-size:clamp(1.1rem,4.2vw,1.45rem);
+  font-family:var(--font-head); font-size:clamp(1.05rem,4vw,1.38rem);
   color:var(--text-dark); cursor:pointer; box-shadow:0 7px 28px var(--shadow);
   transition:transform .22s, box-shadow .22s;
   animation:popIn .65s cubic-bezier(.34,1.56,.64,1) .6s both;
+  margin-bottom: 24px;
 }
 .next-stage-btn:hover { transform:scale(1.07); box-shadow:0 12px 40px var(--shadow); }
 
-/* Chapter pills */
+/* Chapter pills — always single horizontal inline bar, never stacks vertically on phone */
 .chapter-pills {
-  display:flex; gap:8px; justify-content:center; flex-wrap:wrap;
-  position:fixed;
-  bottom: max(14px, env(safe-area-inset-bottom));
-  left:50%; transform:translateX(-50%);
-  z-index:100; padding:0 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  position: fixed;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  padding: 5px 10px;
+  max-width: min(94vw, 560px);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  border-radius: var(--r-pill);
+  background: rgba(22, 8, 42, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.32);
+}
+.chapter-pills::-webkit-scrollbar {
+  display: none;
 }
 .chapter-pill {
-  padding:7px 15px; border-radius:var(--r-pill);
-  border:1.5px solid rgba(255,255,255,.42); background:rgba(255,255,255,.18);
-  backdrop-filter:blur(10px); font-size:.75rem; font-weight:700;
-  color:var(--text-dark); cursor:pointer; transition:all .22s; opacity:.6;
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(8px);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  opacity: 0.75;
 }
-.chapter-pill.active { opacity:1; background:rgba(255,255,255,.52); transform:scale(1.1); }
-.chapter-pill:hover  { opacity:.92; }
+.chapter-pill.active {
+  opacity: 1;
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.8), rgba(168, 85, 247, 0.8));
+  border-color: rgba(255, 255, 255, 0.85);
+  color: #fff;
+  transform: scale(1.05);
+  box-shadow: 0 2px 10px rgba(236, 72, 153, 0.45);
+}
+.chapter-pill:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+@media (min-width: 600px) {
+  .chapter-pills {
+    justify-content: center;
+    padding: 7px 16px;
+    gap: 8px;
+  }
+  .chapter-pill {
+    padding: 7px 15px;
+    font-size: 0.78rem;
+  }
+}
 
 /* ════════════════════════════════════════════
    VIDEO MOMENTS SCREEN
