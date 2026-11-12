@@ -26,18 +26,13 @@ let fadeHandle = null;
 // Dedicated soundtrack for Special Moments videos ("Lag Jaa Gale Instrumental Mix")
 const videoSongAudio = new Audio((typeof CONFIG !== 'undefined' && CONFIG.videoSong) || 'assets/songs/lag_jaa_gale_mix.mp3');
 videoSongAudio.preload = 'auto';
+videoSongAudio.loop    = true; // Seamless loop so song never stops while video is running
 videoSongAudio.volume  = 0.75;
 
-// When the video soundtrack ends, pause the looping video and resume theme song
+// If song ends (fallback), loop it seamlessly and keep videos running!
 videoSongAudio.addEventListener('ended', () => {
-  document.querySelectorAll('video').forEach(v => {
-    v.pause();
-    v.currentTime = 0;
-  });
-  if (!isMuted) {
-    audio.play().catch(() => {});
-    fadeTo(0.62);
-  }
+  videoSongAudio.currentTime = 0;
+  videoSongAudio.play().catch(() => {});
 });
 
 let currentValidSong = (typeof CONFIG !== 'undefined' && CONFIG.stages?.[0]?.song) || 'assets/songs/song1.mp3';
@@ -1025,10 +1020,13 @@ window.toggleVideo = vi => {
       audio.pause();
     });
 
-    // 4. Start soundtrack if original audio is NOT used
+    // 4. Start soundtrack if original audio is NOT used (loops continuously)
     if (!useOrig && typeof videoSongAudio !== 'undefined' && videoSongAudio) {
+      videoSongAudio.loop = true;
       videoSongAudio.muted = isMuted;
-      videoSongAudio.play().catch(() => {});
+      if (videoSongAudio.paused) {
+        videoSongAudio.play().catch(() => {});
+      }
     }
 
     vid.play().catch(() => {});
@@ -1044,9 +1042,11 @@ window.toggleVideo = vi => {
   }
 };
 
-// Global video events
+// Global video events — ensures video & "Lag Jaa Gale" never stop each other while running
+let videoPauseTimer = null;
 document.addEventListener('play', e => {
   if (e.target.tagName !== 'VIDEO') return;
+  if (videoPauseTimer) clearTimeout(videoPauseTimer);
   const vid = e.target;
   const vi = vid.id.replace('vid-', '');
   const overlay = document.getElementById(`voverlay-${vi}`);
@@ -1066,45 +1066,44 @@ document.addEventListener('play', e => {
     overlay.style.display = 'none';
   }
 
-  // Fade out main background song and play video song
+  // Fade out main background song and play video song continuously
   fadeTo(0, () => {
     audio.pause();
   });
   if (typeof videoSongAudio !== 'undefined' && videoSongAudio) {
+    videoSongAudio.loop = true;
     videoSongAudio.muted = isMuted;
-    videoSongAudio.play().catch(() => {});
+    if (videoSongAudio.paused) {
+      videoSongAudio.play().catch(() => {});
+    }
   }
 }, true);
 
 document.addEventListener('pause', e => {
   if (e.target.tagName !== 'VIDEO') return;
-  const anyPlaying = Array.from(document.querySelectorAll('video')).some(v => !v.paused);
-  if (!anyPlaying) {
-    if (typeof videoSongAudio !== 'undefined' && videoSongAudio && !videoSongAudio.paused) {
-      videoSongAudio.pause();
-    }
-    if (!isMuted) {
-      audio.play().catch(() => {});
-      fadeTo(0.62);
-    }
-  }
-}, true);
-
-document.addEventListener('ended', e => {
-  if (e.target.tagName !== 'VIDEO') return;
-  // If video reached end but song is still playing, loop video continuously!
-  if (typeof videoSongAudio !== 'undefined' && videoSongAudio && !videoSongAudio.paused) {
-    e.target.currentTime = 0;
-    e.target.play().catch(() => {});
-  } else {
+  // Delay check so brief pause during video looping or buffering does NOT stop the song!
+  if (videoPauseTimer) clearTimeout(videoPauseTimer);
+  videoPauseTimer = setTimeout(() => {
     const anyPlaying = Array.from(document.querySelectorAll('video')).some(v => !v.paused);
     if (!anyPlaying) {
-      if (typeof videoSongAudio !== 'undefined' && videoSongAudio) videoSongAudio.pause();
+      if (typeof videoSongAudio !== 'undefined' && videoSongAudio && !videoSongAudio.paused) {
+        videoSongAudio.pause();
+      }
       if (!isMuted) {
         audio.play().catch(() => {});
         fadeTo(0.62);
       }
     }
+  }, 300);
+}, true);
+
+document.addEventListener('ended', e => {
+  if (e.target.tagName !== 'VIDEO') return;
+  // Video reached end: loop video continuously so neither video nor song stops!
+  e.target.currentTime = 0;
+  e.target.play().catch(() => {});
+  if (typeof videoSongAudio !== 'undefined' && videoSongAudio && videoSongAudio.paused) {
+    videoSongAudio.play().catch(() => {});
   }
 }, true);
 
