@@ -42,6 +42,83 @@ videoSongAudio.addEventListener('ended', () => {
 
 let currentValidSong = (typeof CONFIG !== 'undefined' && CONFIG.stages?.[0]?.song) || 'assets/songs/song1.mp3';
 
+// Dedicated audio player for Chapter-specific songs (Pehli Nazar, Maula Mere, etc.)
+const chapterAudio = new Audio();
+chapterAudio.loop = true;
+chapterAudio.volume = 0;
+let currentPlayingChapter = null;
+
+window.toggleChapterSong = function(si) {
+  if (currentPlayingChapter === si) {
+    stopChapterSong(true);
+  } else {
+    playChapterSong(si);
+  }
+};
+
+window.playChapterSong = function(si) {
+  const stage = CONFIG.stages?.[si];
+  if (!stage || !stage.chapterSong) return;
+  currentPlayingChapter = si;
+
+  // Smoothly fade down & pause default background song
+  fadeTo(0, () => {
+    audio.pause();
+  });
+
+  chapterAudio.src = stage.chapterSong;
+  chapterAudio.currentTime = 0;
+  chapterAudio.volume = isMuted ? 0 : 0.75;
+  chapterAudio.muted = isMuted;
+
+  chapterAudio.play().then(() => {
+    updateChapterSongUI();
+    sparkleRing(window.innerWidth / 2, window.innerHeight * 0.22);
+  }).catch(err => {
+    console.warn('Chapter song play error:', err);
+    stopChapterSong(true);
+  });
+};
+
+window.stopChapterSong = function(resumeDefault = true) {
+  currentPlayingChapter = null;
+  chapterAudio.pause();
+  chapterAudio.currentTime = 0;
+  updateChapterSongUI();
+
+  if (resumeDefault && !isMuted) {
+    if (audio.paused) {
+      audio.play().then(() => fadeTo(0.62)).catch(() => {});
+    } else {
+      fadeTo(0.62);
+    }
+  }
+};
+
+function updateChapterSongUI() {
+  if (!CONFIG.stages) return;
+  CONFIG.stages.forEach((s, i) => {
+    const wrap = document.getElementById(`chapter-title-wrap-${i}`);
+    const cue = document.getElementById(`song-cue-${i}`);
+    if (!wrap || !cue) return;
+    if (currentPlayingChapter === i) {
+      wrap.classList.add('is-playing');
+      cue.innerHTML = `
+        <span class="cue-icon">🎶</span>
+        <span class="cue-text">Playing: <em>${s.songName || 'song'}</em> · tap to pause</span>
+        <span class="cue-equalizer" aria-hidden="true"><span></span><span></span><span></span></span>
+      `;
+    } else {
+      wrap.classList.remove('is-playing');
+      cue.innerHTML = `
+        <span class="cue-icon">🎵</span>
+        <span class="cue-text">tap title to play <em>${s.songName || 'song'}</em></span>
+        <span class="cue-equalizer" aria-hidden="true"><span></span><span></span><span></span></span>
+      `;
+    }
+  });
+}
+
 function fadeTo(target, cb) {
   if (fadeHandle) clearInterval(fadeHandle);
   const step = target > audio.volume ? 0.035 : -0.035;
@@ -536,9 +613,16 @@ function buildStages() {
     ].filter(Boolean).join(' ');
 
     div.innerHTML = `
-      <div class="stage-title-wrap">
+      <div class="stage-title-wrap chapter-title-interactive" id="chapter-title-wrap-${si}" onclick="toggleChapterSong(${si})" role="button" tabindex="0" title="Tap title to play ${stage.songName || 'song'}">
         <span class="stage-emoji-big">${stage.emoji}</span>
-        <h2 class="stage-title">${stage.title}</h2>
+        <div class="stage-title-col">
+          <h2 class="stage-title">${stage.title}</h2>
+          <div class="chapter-song-cue" id="song-cue-${si}">
+            <span class="cue-icon">🎵</span>
+            <span class="cue-text">tap title to play <em>${stage.songName || 'song'}</em></span>
+            <span class="cue-equalizer" aria-hidden="true"><span></span><span></span><span></span></span>
+          </div>
+        </div>
       </div>
 
       <div class="photo-stage" id="pstage-${si}">
@@ -1107,6 +1191,7 @@ function changeWish(si, dir) {
    STAGE NAVIGATION
 ══════════════════════════════════════════════ */
 window.goToStage = idx => {
+  stopChapterSong(true);
   currentStageIndex = idx;
   const stage = CONFIG.stages[idx];
   if (!stage) return;
@@ -1133,6 +1218,7 @@ window.goToStage = idx => {
 };
 
 window.goToVideos = () => {
+  stopChapterSong(false);
   currentStageIndex = 'videos';
   document.body.className = 'theme-lavender';
   showScreen('screen-videos');
@@ -1146,6 +1232,7 @@ window.goToVideos = () => {
    FINAL SCREEN
 ══════════════════════════════════════════════ */
 window.goToFinal = () => {
+  stopChapterSong(true);
   if (wishAutoTimer) clearInterval(wishAutoTimer);
   currentStageIndex = CONFIG.stages.length + 1;
   document.body.className = 'theme-blush';
@@ -1204,6 +1291,10 @@ window.replayAll = () => {
 muteBtn.addEventListener('click', () => {
   isMuted = !isMuted;
   fadeTo(isMuted ? 0 : 0.62);
+  if (typeof chapterAudio !== 'undefined' && chapterAudio) {
+    chapterAudio.muted = isMuted;
+    chapterAudio.volume = isMuted ? 0 : 0.75;
+  }
   if (typeof videoSongAudio !== 'undefined' && videoSongAudio) {
     videoSongAudio.muted = isMuted;
   }
@@ -1279,29 +1370,30 @@ window.openExperience = function(e) {
   const cx = (e && typeof e.clientX === 'number' && e.clientX > 0) ? e.clientX : window.innerWidth / 2;
   const cy = (e && typeof e.clientY === 'number' && e.clientY > 0) ? e.clientY : window.innerHeight / 2;
 
-  // Step 1 — untie the ribbon
-  const ribbon = document.getElementById('card-ribbon');
-  if (ribbon) ribbon.classList.add('untying');
+  // 1. Activate card split opening (half towards right, half towards left)
+  const card = document.getElementById('cover-card');
+  if (card) {
+    card.classList.add('doors-active');
+    void card.offsetWidth;
+    card.classList.add('doors-opening');
+  }
 
-  // Step 2 — after ribbon unties, do card-opening flip + confetti
+  // 2. Confetti + sparkle + start default background audio ("Kabhi To Nazar Milao")
   setTimeout(() => {
-    launchConfetti(cx, cy, 130);
+    launchConfetti(cx, cy, 140);
     sparkleRing(cx, cy);
-    heartRain(12);
-
-    const card = document.getElementById('cover-card');
-    if (card) card.classList.add('card-opening');
+    heartRain(16);
 
     if (CONFIG.stages[0]?.song) {
       startAudio(CONFIG.stages[0].song);
     }
-  }, 580);
+  }, 250);
 
-  // Step 3 — after animation completes, navigate to Chapter I
+  // 3. Smoothly navigate into Chapter 1
   setTimeout(() => {
     goToStage(0);
     muteBtn.classList.add('visible');
-  }, 1100);
+  }, 850);
 };
 
 const openBtn = document.getElementById('open-btn');
@@ -1310,10 +1402,15 @@ if (openBtn) {
   openBtn.addEventListener('touchend', window.openExperience, { passive: false });
 }
 
-// Keyboard support for card ribbon
-const cardRibbon = document.getElementById('card-ribbon');
-if (cardRibbon) {
-  cardRibbon.addEventListener('keydown', e => {
+// Tapping anywhere on the cover card also opens it like a card
+const coverCard = document.getElementById('cover-card');
+if (coverCard) {
+  coverCard.addEventListener('click', e => {
+    if (!started && e.target !== openBtn) {
+      window.openExperience(e);
+    }
+  });
+  coverCard.addEventListener('keydown', e => {
     if (e.key === 'Enter' || e.key === ' ') window.openExperience(e);
   });
 }
@@ -1382,51 +1479,46 @@ window.goToCapsule = () => {
 };
 
 function triggerCardClosing(onComplete) {
+  stopChapterSong(false);
   const overlay = document.getElementById('card-closing-overlay');
   if (!overlay) { onComplete?.(); return; }
+
+  const card3d = overlay.querySelector('.closing-card-3d');
+  const seal   = overlay.querySelector('.closing-card-seal');
+  if (card3d) card3d.classList.remove('card-closed');
+  if (seal)   seal.classList.remove('sealed');
+  overlay.classList.remove('fade-out');
 
   // Show overlay
   overlay.style.display = 'flex';
   void overlay.offsetWidth; // force reflow so CSS animation fires
 
-  // 400ms — card flaps begin folding inward
+  // 200ms — card flaps swing shut together from left and right (NO RIBBON)
   setTimeout(() => {
-    const card3d = overlay.querySelector('.closing-card-3d');
     if (card3d) card3d.classList.add('card-closed');
-  }, 400);
+  }, 200);
 
-  // 950ms — ribbon band slides across
+  // 900ms — celestial seal lights up in the center (NO RIBBON) + confetti & heart rain
   setTimeout(() => {
-    const band = overlay.querySelector('.closing-ribbon-band');
-    if (band) band.classList.add('tied');
-  }, 950);
+    if (seal) seal.classList.add('sealed');
+    heartRain(12);
+    launchConfetti(window.innerWidth / 2, window.innerHeight * 0.42, 90);
+    sparkleRing(window.innerWidth / 2, window.innerHeight * 0.42);
+  }, 900);
 
-  // 1350ms — bow pops in + heart rain + confetti
-  setTimeout(() => {
-    const bow = overlay.querySelector('.closing-ribbon-bow');
-    if (bow) bow.classList.add('tied');
-    heartRain(10);
-    launchConfetti(window.innerWidth / 2, window.innerHeight * 0.4, 80);
-    sparkleRing(window.innerWidth / 2, window.innerHeight * 0.4);
-  }, 1350);
-
-  // 2700ms — fade out overlay
+  // 2400ms — fade out overlay
   setTimeout(() => {
     overlay.classList.add('fade-out');
-  }, 2700);
+  }, 2400);
 
-  // 3400ms — hide overlay, reset state, run callback
+  // 3000ms — hide overlay, transition into 11:11 Space
   setTimeout(() => {
     overlay.style.display = 'none';
     overlay.classList.remove('fade-out');
-    const card3d = overlay.querySelector('.closing-card-3d');
-    const band   = overlay.querySelector('.closing-ribbon-band');
-    const bow    = overlay.querySelector('.closing-ribbon-bow');
     if (card3d) card3d.classList.remove('card-closed');
-    if (band)   band.classList.remove('tied');
-    if (bow)    bow.classList.remove('tied');
+    if (seal)   seal.classList.remove('sealed');
     onComplete?.();
-  }, 3400);
+  }, 3000);
 }
 
 window.switchCapsuleTab = tab => {

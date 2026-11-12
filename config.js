@@ -22,40 +22,51 @@ const CONFIG = window.CONFIG = {
   coverDate: "11 · 11 · Forever 🌙",
 
   /* ── Music Stages ─────────────────────────────────────────
-     Theme song: Kabhi To Nazar Milao (flawless loop across all chapters)
+     Default song: Kabhi To Nazar Milao (loops across all chapters)
+     chapterSong:  plays when user taps the chapter title pill
   ────────────────────────────────────────────────────────── */
   stages: [
     {
       title: "Chapter I · Pehli Nazar 🌸",
+      songName: "Pehli Nazar",
       song: "assets/songs/song1.mp3",
+      chapterSong: "assets/songs/Pehli Nazar Mein Race 320 Kbps.mp3",
       theme: "theme-blush",
       emoji: "🌸",
       poetLabel: "✦ Opening",
     },
     {
       title: "Chapter II · Maula Mere 🌙",
-      song: "assets/songs/song1.mp3",   // Kabhi To Nazar Milao continues seamlessly
+      songName: "Maula Mere",
+      song: "assets/songs/song1.mp3",
+      chapterSong: "assets/songs/Roop_Kumar_Rathod_-_Maula_Mere_Maula_(mp3.pm).mp3",
       theme: "theme-lavender",
       emoji: "🌙",
       poetLabel: "✦ Ghalib & Faiz",
     },
     {
       title: "Chapter III · O Re Piya ✨",
-      song: "assets/songs/song1.mp3",   // Kabhi To Nazar Milao continues seamlessly
+      songName: "O Re Piya",
+      song: "assets/songs/song1.mp3",
+      chapterSong: "assets/songs/O Re Piya Aaja Nachle 320 Kbps.mp3",
       theme: "theme-peach",
       emoji: "✨",
       poetLabel: "✦ Rumi & Neruda",
     },
     {
       title: "Chapter IV · Malika-ye-Husn 👑",
-      song: "assets/songs/song1.mp3",   // Kabhi To Nazar Milao continues seamlessly
+      songName: "Tera Chehra",
+      song: "assets/songs/song1.mp3",
+      chapterSong: "assets/songs/Tera Chehra Adnan Sami 320 Kbps.mp3",
       theme: "theme-sky",
       emoji: "👑",
       poetLabel: "✦ Gulzar & Tagore",
     },
     {
       title: "Chapter V · Mann Ki Lagan 🕊️",
-      song: "assets/songs/song1.mp3",   // Kabhi To Nazar Milao continues seamlessly
+      songName: "Mann Ki Lagan",
+      song: "assets/songs/song1.mp3",
+      chapterSong: "assets/songs/Mann Ki Lagan Paap 320 Kbps.mp3",
       theme: "theme-sunset",
       emoji: "🕊️",
       poetLabel: "✦ Sufi & Eternal",

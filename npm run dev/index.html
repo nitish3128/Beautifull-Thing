@@ -75,22 +75,25 @@
     <!-- ── Bottom-anchored content panel ── -->
     <div class="cover-content" id="cover-card">
 
-      <!-- Tied Silk Ribbon with Interactive Untying Bow -->
-      <div class="card-ribbon-wrapper" id="card-ribbon" onclick="openExperience(event)" role="button" tabindex="0" aria-label="Tap ribbon to open card">
-        <div class="ribbon-band-h"></div>
-        <div class="ribbon-bow-center">
-          <div class="ribbon-bow-glow"></div>
-          <div class="ribbon-bow-knot">
-            <span class="bow-loop bow-left"></span>
-            <span class="bow-gem">🎀</span>
-            <span class="bow-loop bow-right"></span>
+      <!-- Card 3D Split Doors — only activates on tap to open like a card -->
+      <div class="card-doors-split" id="card-door" aria-hidden="true">
+        <div class="card-door-left" id="door-left">
+          <div class="door-sheen"></div>
+          <div class="door-inner">
+            <span class="door-star">✦</span>
+            <span class="door-emblem">🌙</span>
+            <span class="door-sub">My 11:11</span>
           </div>
-          <div class="ribbon-tails">
-            <span class="bow-tail tail-left"></span>
-            <span class="bow-tail tail-right"></span>
-          </div>
-          <div class="ribbon-tap-tag">Untie Ribbon to Open 🎀✨</div>
         </div>
+        <div class="card-door-right" id="door-right">
+          <div class="door-sheen"></div>
+          <div class="door-inner">
+            <span class="door-star">✦</span>
+            <span class="door-emblem">🪻</span>
+            <span class="door-sub">Ritika</span>
+          </div>
+        </div>
+        <div class="door-light-beam"></div>
       </div>
 
       <!-- Tagline pill -->
@@ -398,10 +401,10 @@
           </div>
         </div>
 
-        <!-- Silk Ribbon tying across the closing card -->
-        <div class="closing-ribbon-band"></div>
-        <div class="closing-ribbon-bow">
-          <span class="closing-bow-knot">🎀</span>
+        <!-- Celestial Keepsake Seal (NO RIBBON) -->
+        <div class="closing-card-seal" id="closing-card-seal">
+          <div class="seal-glow"></div>
+          <span class="seal-emblem">🪻</span>
           <span class="closing-seal-pill">11:11 Sealed with Love 💜</span>
         </div>
       </div>
