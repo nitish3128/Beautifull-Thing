@@ -123,36 +123,153 @@ setTimeout(() => {
 /* ══════════════════════════════════════════════
    PARTICLE CANVAS  (floating bokeh background)
 ══════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   CELESTIAL STARDUST & AMBIENT SPARKLES (CLASSY CANVAS)
+   High-end, delicate stardust & diamond star glints.
+   Pure canvas, zero DOM bloat, 100% non-intrusive.
+══════════════════════════════════════════════ */
 const canvas = document.getElementById('particle-canvas');
 const ctx    = canvas.getContext('2d');
 let particles = [];
+let interactiveSparkles = [];
 
-function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-resizeCanvas(); window.addEventListener('resize', resizeCanvas);
+function resizeCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = window.innerWidth * dpr;
+  canvas.height = window.innerHeight * dpr;
+  canvas.style.width = window.innerWidth + 'px';
+  canvas.style.height = window.innerHeight + 'px';
+  ctx.scale(dpr, dpr);
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// Dreamy stardust palette
+const STARDUST_COLORS = [
+  'rgba(235, 215, 255, ', // Soft lavender
+  'rgba(255, 225, 240, ', // Rose petal
+  'rgba(255, 242, 215, ', // Warm starlight gold
+  'rgba(215, 235, 255, ', // Moonlight mist
+  'rgba(255, 255, 255, '  // Pure diamond white
+];
 
 function resetP(p) {
-  p.x     = Math.random() * canvas.width;
-  p.y     = canvas.height + 10;
-  p.r     = Math.random() * 2.8 + 0.7;
-  p.vx    = (Math.random() - 0.5) * 0.38;
-  p.vy    = -(Math.random() * 0.55 + 0.18);
-  p.alpha = Math.random() * 0.5 + 0.22;
-  p.hue   = Math.floor(Math.random() * 80 + 270); // purples-pinks
+  p.x     = Math.random() * window.innerWidth;
+  p.y     = window.innerHeight + 12;
+  p.r     = Math.random() * 2.0 + 0.6;
+  p.vx    = (Math.random() - 0.5) * 0.22;
+  p.vy    = -(Math.random() * 0.38 + 0.14);
+  p.alpha = Math.random() * 0.45 + 0.15;
+  p.maxAlpha = p.alpha;
+  p.color = STARDUST_COLORS[Math.floor(Math.random() * STARDUST_COLORS.length)];
+  p.twinkleSpeed = Math.random() * 0.02 + 0.008;
+  p.twinklePhase = Math.random() * Math.PI * 2;
+  p.isStar = Math.random() < 0.28; // Subtle 4-pointed diamond glints
+  p.starSize = Math.random() * 3.5 + 2.2;
+  p.rot = Math.random() * Math.PI;
+  p.rotSpeed = (Math.random() - 0.5) * 0.006;
 }
-for (let i = 0; i < 80; i++) {
-  const p = {}; resetP(p); p.y = Math.random() * canvas.height;
+
+for (let i = 0; i < 65; i++) {
+  const p = {};
+  resetP(p);
+  p.y = Math.random() * window.innerHeight;
   particles.push(p);
 }
-(function drawP() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+// 4-pointed diamond glint
+function drawStarGlint(x, y, r, rot, fill) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rot);
+  ctx.beginPath();
+  const inner = r * 0.22;
+  for (let i = 0; i < 4; i++) {
+    const a = (i * Math.PI) / 2;
+    ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+    const aIn = a + Math.PI / 4;
+    ctx.lineTo(Math.cos(aIn) * inner, Math.sin(aIn) * inner);
+  }
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.restore();
+}
+
+// Interactive touch / cursor micro-stardust trail
+function addInteractiveSparkle(x, y) {
+  if (interactiveSparkles.length > 30) return;
+  for (let i = 0; i < 2; i++) {
+    interactiveSparkles.push({
+      x: x + (Math.random() - 0.5) * 14,
+      y: y + (Math.random() - 0.5) * 14,
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: (Math.random() - 0.5) * 0.6 - 0.2,
+      r: Math.random() * 1.8 + 0.8,
+      alpha: 0.6,
+      decay: Math.random() * 0.025 + 0.015,
+      color: STARDUST_COLORS[Math.floor(Math.random() * STARDUST_COLORS.length)]
+    });
+  }
+}
+
+let lastTrailTime = 0;
+window.addEventListener('mousemove', e => {
+  const now = performance.now();
+  if (now - lastTrailTime > 45) {
+    addInteractiveSparkle(e.clientX, e.clientY);
+    lastTrailTime = now;
+  }
+}, { passive: true });
+
+window.addEventListener('touchmove', e => {
+  const now = performance.now();
+  if (now - lastTrailTime > 55 && e.touches[0]) {
+    addInteractiveSparkle(e.touches[0].clientX, e.touches[0].clientY);
+    lastTrailTime = now;
+  }
+}, { passive: true });
+
+(function drawCelestialCanvas() {
+  ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+  // 1. Draw ambient stardust
   particles.forEach(p => {
-    p.x += p.vx; p.y += p.vy; p.alpha -= 0.0009;
-    if (p.alpha <= 0 || p.y < -10) resetP(p);
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fillStyle = `hsla(${p.hue},78%,76%,${p.alpha})`;
-    ctx.fill();
+    p.x += p.vx;
+    p.y += p.vy;
+    p.twinklePhase += p.twinkleSpeed;
+    p.rot += p.rotSpeed;
+
+    const currentAlpha = p.maxAlpha * (0.6 + 0.4 * Math.sin(p.twinklePhase));
+    if (p.y < -12 || currentAlpha <= 0.02) resetP(p);
+
+    if (p.isStar) {
+      drawStarGlint(p.x, p.y, p.starSize, p.rot, p.color + currentAlpha + ')');
+    } else {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.color + currentAlpha + ')';
+      ctx.fill();
+    }
   });
-  requestAnimationFrame(drawP);
+
+  // 2. Draw interactive trail sparkles
+  for (let i = interactiveSparkles.length - 1; i >= 0; i--) {
+    const s = interactiveSparkles[i];
+    s.x += s.vx;
+    s.y += s.vy;
+    s.alpha -= s.decay;
+    if (s.alpha <= 0) {
+      interactiveSparkles.splice(i, 1);
+      continue;
+    }
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = s.color + s.alpha + ')';
+    ctx.fill();
+  }
+
+  requestAnimationFrame(drawCelestialCanvas);
 })();
 
 /* ══════════════════════════════════════════════
@@ -196,31 +313,8 @@ if (bokeh) {
 ══════════════════════════════════════════════ */
 const STICKERS = ['🌸','💜','✨','🌷','💫','🦋','🌺','⭐','🍀','🌙','💝','🌈','🎀','🌻','💎','🕊️','🌟','💐','🪻','👑','🌹','🎵','🌼','💖'];
 function buildStickers() {
-  floatersEl.innerHTML = '';
-  for (let i = 0; i < 18; i++) {
-    const s   = document.createElement('span'); s.className = 'sticker';
-    s.textContent = STICKERS[i % STICKERS.length];
-    // Click or tap to dismiss sticker and remove blind spots
-    s.style.pointerEvents = 'auto';
-    s.style.cursor = 'pointer';
-    const dismissSticker = (e) => {
-      if (e) e.stopPropagation();
-      s.classList.add('dismissed');
-      setTimeout(() => s.remove(), 260);
-    };
-    s.addEventListener('click', dismissSticker);
-    s.addEventListener('touchend', dismissSticker, { passive: true });
-    const left  = Math.random() * 94;
-    const top   = Math.random() * 94;
-    const dur   = (Math.random() * 6 + 4).toFixed(1);
-    const delay = (Math.random() * 4).toFixed(1);
-    const ty    = -(Math.random() * 44 + 10).toFixed(0);
-    const rot0  = (Math.random() * 20 - 10).toFixed(0);
-    const rot1  = (Math.random() * 20 - 10).toFixed(0);
-    const sc    = (Math.random() * 0.4 + 0.88).toFixed(2);
-    s.style.cssText = `left:${left}%;top:${top}%;--dur:${dur}s;--delay:${delay}s;--ty:${ty}px;--rot0:${rot0}deg;--rot1:${rot1}deg;--sc:${sc};`;
-    floatersEl.appendChild(s);
-  }
+  // Floating stickers disabled as requested
+  if (floatersEl) floatersEl.innerHTML = '';
 }
 buildStickers();
 
@@ -1131,7 +1225,7 @@ function animateCoverName() {
 }
 
 /* ══════════════════════════════════════════════
-   COVER FLOATING EMOJIS + SHOOTING STARS
+   COVER SETUP (CLEAN & MINIMAL CELESTIAL)
 ══════════════════════════════════════════════ */
 function setupCover() {
   animateCoverName();
@@ -1139,42 +1233,16 @@ function setupCover() {
   if (tagEl && CONFIG.coverTagline) tagEl.textContent = CONFIG.coverTagline;
   const dateEl = document.querySelector('.date-badge');
   if (dateEl && CONFIG.coverDate) dateEl.textContent = CONFIG.coverDate;
-  const coverEl = document.getElementById('screen-cover');
-  const floats  = ['💜','🌸','✨','💫','🌷','🦋','⭐','💝','🎀','💖','🌈','🍀','🪻','👑','🌹','🌙'];
-  const positions = [
-    {top:'6%',left:'4%'},{top:'9%',right:'5%'},
-    {top:'24%',left:'1.5%'},{top:'22%',right:'1.5%'},
-    {top:'50%',left:'2%'},{top:'55%',right:'3%'},
-    {top:'75%',left:'5%'},{top:'73%',right:'5%'},
-    {top:'40%',left:'0%'},{top:'42%',right:'0%'},
-    {top:'87%',left:'36%'},{top:'3%',left:'41%'},
-    {top:'16%',left:'28%'},{top:'83%',right:'28%'},
-    {top:'64%',left:'2%'},{top:'62%',right:'2%'},
-  ];
-  floats.forEach((em, i) => {
-    const el  = document.createElement('div');
-    el.className = 'float-emoji'; el.textContent = em;
-    const p   = positions[i] || { top:`${8+Math.random()*80}%`, left:`${4+Math.random()*88}%` };
-    const dur = (3.5 + Math.random() * 3.5).toFixed(1);
-    const delay = (Math.random() * 2.5).toFixed(1);
-    const tx  = ((Math.random() - .5) * 42).toFixed(0);
-    const ty  = -(22 + Math.random() * 32).toFixed(0);
-    const tx2 = ((Math.random() - .5) * 30).toFixed(0);
-    const ty2 = (Math.random() * 22).toFixed(0);
-    el.style.cssText = Object.entries(p).map(([k, v]) => `${k}:${v}`).join(';') +
-      `;--dur:${dur}s;--delay:${delay}s;--tx:${tx}px;--ty:${ty}px;--tx2:${tx2}px;--ty2:${ty2}px;`;
-    coverEl.appendChild(el);
-  });
 
-  // Periodic shooting stars on the cover
+  // Periodic ambient shooting stars on the cover
   setInterval(() => {
     if (started) return;
     const star = document.createElement('div');
     star.className = 'shooting-star';
-    star.style.cssText = `top:${Math.random() * 45}%;left:${Math.random() * 55}%;--dur:${1 + Math.random() * 0.9}s;--delay:0s;`;
+    star.style.cssText = `top:${Math.random() * 45}%;left:${Math.random() * 55}%;--dur:${1.2 + Math.random() * 0.8}s;--delay:0s;`;
     document.getElementById('screen-cover')?.appendChild(star);
     setTimeout(() => star.remove(), 2200);
-  }, 3800);
+  }, 4200);
 }
 
 /* ══════════════════════════════════════════════
@@ -1211,17 +1279,29 @@ window.openExperience = function(e) {
   const cx = (e && typeof e.clientX === 'number' && e.clientX > 0) ? e.clientX : window.innerWidth / 2;
   const cy = (e && typeof e.clientY === 'number' && e.clientY > 0) ? e.clientY : window.innerHeight / 2;
 
-  launchConfetti(cx, cy, 120);
-  sparkleRing(cx, cy);
+  // Step 1 — untie the ribbon
+  const ribbon = document.getElementById('card-ribbon');
+  if (ribbon) ribbon.classList.add('untying');
 
-  if (CONFIG.stages[0]?.song) {
-    startAudio(CONFIG.stages[0].song);
-  }
+  // Step 2 — after ribbon unties, do card-opening flip + confetti
+  setTimeout(() => {
+    launchConfetti(cx, cy, 130);
+    sparkleRing(cx, cy);
+    heartRain(12);
 
+    const card = document.getElementById('cover-card');
+    if (card) card.classList.add('card-opening');
+
+    if (CONFIG.stages[0]?.song) {
+      startAudio(CONFIG.stages[0].song);
+    }
+  }, 580);
+
+  // Step 3 — after animation completes, navigate to Chapter I
   setTimeout(() => {
     goToStage(0);
     muteBtn.classList.add('visible');
-  }, 450);
+  }, 1100);
 };
 
 const openBtn = document.getElementById('open-btn');
@@ -1230,10 +1310,12 @@ if (openBtn) {
   openBtn.addEventListener('touchend', window.openExperience, { passive: false });
 }
 
-const giftWrap = document.getElementById('gift-wrap');
-if (giftWrap) {
-  giftWrap.addEventListener('click', window.openExperience);
-  giftWrap.addEventListener('touchend', window.openExperience, { passive: false });
+// Keyboard support for card ribbon
+const cardRibbon = document.getElementById('card-ribbon');
+if (cardRibbon) {
+  cardRibbon.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') window.openExperience(e);
+  });
 }
 
 /* ══════════════════════════════════════════════
@@ -1285,17 +1367,67 @@ let currentJukeboxIdx = 0;
 let isJukeboxPlaying = false;
 
 window.goToCapsule = () => {
-  currentStageIndex = 'capsule';
-  document.body.className = 'theme-lavender';
-  const pills = document.getElementById('chapter-pills');
-  if (pills) pills.style.display = 'flex';
-  showScreen('screen-capsule');
-  buildStickers();
-  buildChapterPills();
-  initCapsuleSpace();
-  // Celebration burst
-  sparkleRing(window.innerWidth / 2, window.innerHeight / 3);
+  // Show card-closing animation before entering 11:11 Space
+  triggerCardClosing(() => {
+    currentStageIndex = 'capsule';
+    document.body.className = 'theme-lavender';
+    const pills = document.getElementById('chapter-pills');
+    if (pills) pills.style.display = 'flex';
+    showScreen('screen-capsule');
+    buildStickers();
+    buildChapterPills();
+    initCapsuleSpace();
+    sparkleRing(window.innerWidth / 2, window.innerHeight / 3);
+  });
 };
+
+function triggerCardClosing(onComplete) {
+  const overlay = document.getElementById('card-closing-overlay');
+  if (!overlay) { onComplete?.(); return; }
+
+  // Show overlay
+  overlay.style.display = 'flex';
+  void overlay.offsetWidth; // force reflow so CSS animation fires
+
+  // 400ms — card flaps begin folding inward
+  setTimeout(() => {
+    const card3d = overlay.querySelector('.closing-card-3d');
+    if (card3d) card3d.classList.add('card-closed');
+  }, 400);
+
+  // 950ms — ribbon band slides across
+  setTimeout(() => {
+    const band = overlay.querySelector('.closing-ribbon-band');
+    if (band) band.classList.add('tied');
+  }, 950);
+
+  // 1350ms — bow pops in + heart rain + confetti
+  setTimeout(() => {
+    const bow = overlay.querySelector('.closing-ribbon-bow');
+    if (bow) bow.classList.add('tied');
+    heartRain(10);
+    launchConfetti(window.innerWidth / 2, window.innerHeight * 0.4, 80);
+    sparkleRing(window.innerWidth / 2, window.innerHeight * 0.4);
+  }, 1350);
+
+  // 2700ms — fade out overlay
+  setTimeout(() => {
+    overlay.classList.add('fade-out');
+  }, 2700);
+
+  // 3400ms — hide overlay, reset state, run callback
+  setTimeout(() => {
+    overlay.style.display = 'none';
+    overlay.classList.remove('fade-out');
+    const card3d = overlay.querySelector('.closing-card-3d');
+    const band   = overlay.querySelector('.closing-ribbon-band');
+    const bow    = overlay.querySelector('.closing-ribbon-bow');
+    if (card3d) card3d.classList.remove('card-closed');
+    if (band)   band.classList.remove('tied');
+    if (bow)    bow.classList.remove('tied');
+    onComplete?.();
+  }, 3400);
+}
 
 window.switchCapsuleTab = tab => {
   document.querySelectorAll('.capsule-tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -1482,12 +1614,45 @@ const DEFAULT_PLAYLIST = [
 ];
 
 function getStoredPlaylist() {
+  const autoSongs = (typeof window !== 'undefined' && window.AUTO_DISCOVERED_SONGS) || DEFAULT_PLAYLIST;
   try {
     const raw = localStorage.getItem('ritika_1111_playlist');
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const stored = JSON.parse(raw);
+      // Automatically merge in any new songs found in assets/songs without losing user changes
+      const storedSrcs = new Set(stored.map(s => s.src));
+      let hasNew = false;
+      autoSongs.forEach(song => {
+        if (!storedSrcs.has(song.src)) {
+          stored.push(song);
+          hasNew = true;
+        }
+      });
+      if (hasNew) {
+        saveStoredPlaylist(stored);
+      }
+      return stored;
+    }
   } catch (e) {}
-  return DEFAULT_PLAYLIST;
+  return autoSongs;
 }
+
+window.syncAllDiscoveredSongs = () => {
+  const autoSongs = (typeof window !== 'undefined' && window.AUTO_DISCOVERED_SONGS) || DEFAULT_PLAYLIST;
+  const current = getStoredPlaylist();
+  const currentSrcs = new Set(current.map(s => s.src));
+  let addedCount = 0;
+  autoSongs.forEach(song => {
+    if (!currentSrcs.has(song.src)) {
+      current.push(song);
+      addedCount++;
+    }
+  });
+  saveStoredPlaylist(current);
+  renderPlaylist();
+  launchConfetti(window.innerWidth / 2, window.innerHeight / 2, 70);
+  alert(`✨ Synchronized! All ${current.length} songs are ready in your Song Vault.`);
+};
 
 function saveStoredPlaylist(pl) {
   try {

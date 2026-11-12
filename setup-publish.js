@@ -1,5 +1,13 @@
 const fs = require('fs');
 const path = require('path');
+const { scanSongs } = require('./scan-songs');
+
+// Run song scanner to ensure all assets/songs are in manifest
+try {
+  scanSongs();
+} catch (e) {
+  console.warn('Notice: Song scan warning:', e.message);
+}
 
 // Fallback for when Render has "npm run dev" configured as Publish Directory
 const targetDir = path.join(__dirname, 'npm run dev');
@@ -14,6 +22,7 @@ try {
     'style.css',
     'script.js',
     'config.js',
+    'songs-manifest.js',
     'manifest.json',
     'assets'
   ];

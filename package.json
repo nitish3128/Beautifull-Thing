@@ -4,9 +4,10 @@
   "description": "thanks for existing My 11:11 🪻",
   "main": "index.html",
   "scripts": {
-    "dev": "serve -l 3000",
-    "start": "serve -l 3000",
+    "dev": "node watch-songs.js",
+    "start": "node watch-songs.js",
     "serve": "serve -l 3000",
+    "scan": "node scan-songs.js",
     "build": "node setup-publish.js",
     "postinstall": "node setup-publish.js"
   },

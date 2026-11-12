@@ -73,42 +73,24 @@
     <div class="moon-badge" aria-label="moon">🌙</div>
 
     <!-- ── Bottom-anchored content panel ── -->
-    <div class="cover-content">
+    <div class="cover-content" id="cover-card">
 
-      <!-- Floating gift box SVG (sits just above the panel) -->
-      <div class="gift-wrap" id="gift-wrap" onclick="openExperience(event)" role="button" tabindex="0" aria-label="Tap to Open Gift">
-        <svg class="gift-box-svg" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Box body -->
-          <rect x="18" y="72" width="124" height="78" rx="12" fill="url(#bG)" filter="url(#gf)"/>
-          <!-- Lid -->
-          <rect x="12" y="54" width="136" height="28" rx="10" fill="url(#lG)"/>
-          <!-- Ribbon vertical -->
-          <rect x="72" y="54" width="16" height="96" rx="4" fill="url(#rG)"/>
-          <!-- Ribbon horizontal -->
-          <rect x="12" y="62" width="136" height="12" rx="4" fill="url(#rG)"/>
-          <!-- Bow left loop -->
-          <ellipse cx="58" cy="46" rx="22" ry="14" fill="url(#boG)" transform="rotate(-20 58 46)"/>
-          <!-- Bow right loop -->
-          <ellipse cx="102" cy="46" rx="22" ry="14" fill="url(#boG)" transform="rotate(20 102 46)"/>
-          <!-- Bow centre knot -->
-          <circle cx="80" cy="52" r="12" fill="url(#bcG)"/>
-          <!-- Sparkles on box -->
-          <text x="28"  y="118" font-size="16" opacity="0.65">✨</text>
-          <text x="112" y="108" font-size="13" opacity="0.55">⭐</text>
-          <text x="50"  y="136" font-size="11" opacity="0.50">💜</text>
-          <text x="96"  y="142" font-size="10" opacity="0.42">🌸</text>
-          <defs>
-            <linearGradient id="bG"  x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#E8C8FF"/><stop offset="100%" stop-color="#C8A0F0"/></linearGradient>
-            <linearGradient id="lG"  x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#D4B0F5"/><stop offset="100%" stop-color="#B890E8"/></linearGradient>
-            <linearGradient id="rG"  x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FF9EC8"/><stop offset="100%" stop-color="#E060C0"/></linearGradient>
-            <linearGradient id="boG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FF80C0"/><stop offset="100%" stop-color="#D040A0"/></linearGradient>
-            <radialGradient id="bcG" cx="50%" cy="50%"><stop offset="0%" stop-color="#FFB0D8"/><stop offset="100%" stop-color="#E060B0"/></radialGradient>
-            <filter id="gf" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="6" result="b"/>
-              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-        </svg>
+      <!-- Tied Silk Ribbon with Interactive Untying Bow -->
+      <div class="card-ribbon-wrapper" id="card-ribbon" onclick="openExperience(event)" role="button" tabindex="0" aria-label="Tap ribbon to open card">
+        <div class="ribbon-band-h"></div>
+        <div class="ribbon-bow-center">
+          <div class="ribbon-bow-glow"></div>
+          <div class="ribbon-bow-knot">
+            <span class="bow-loop bow-left"></span>
+            <span class="bow-gem">🎀</span>
+            <span class="bow-loop bow-right"></span>
+          </div>
+          <div class="ribbon-tails">
+            <span class="bow-tail tail-left"></span>
+            <span class="bow-tail tail-right"></span>
+          </div>
+          <div class="ribbon-tap-tag">Untie Ribbon to Open 🎀✨</div>
+        </div>
       </div>
 
       <!-- Tagline pill -->
@@ -290,7 +272,10 @@
 
         <!-- Songs List -->
         <div class="playlist-section">
-          <h4 class="section-title">Our Playlist 🎧</h4>
+          <div class="playlist-header-row">
+            <h4 class="section-title" style="margin:0;">Our Playlist 🎧</h4>
+            <button type="button" class="sync-playlist-btn" onclick="syncAllDiscoveredSongs()" title="Sync all songs from assets">🔄 Sync All Songs</button>
+          </div>
           <div class="playlist-items" id="playlist-items"></div>
         </div>
 
@@ -376,7 +361,62 @@
     </div>
   </div>
 
+  <!-- ════════════════════════════════════════════
+       KEEPSAKE CARD CLOSING OVERLAY (Journey to 11:11 Space)
+  ════════════════════════════════════════════ -->
+  <div id="card-closing-overlay" class="card-closing-overlay" style="display:none;" aria-hidden="true">
+    <div class="closing-card-container">
+      
+      <!-- 3D Card Book -->
+      <div class="closing-card-3d" id="closing-card-3d">
+        <!-- Left Flap -->
+        <div class="card-flap flap-left">
+          <div class="flap-stars"></div>
+          <div class="flap-face">
+            <span class="flap-corner">✨</span>
+            <div class="flap-content">
+              <span class="flap-icon">📖</span>
+              <span class="flap-title">Chapters I – V</span>
+              <span class="flap-sub">Moments &amp; Memories</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center Spine -->
+        <div class="closing-card-spine"></div>
+
+        <!-- Right Flap -->
+        <div class="card-flap flap-right">
+          <div class="flap-stars"></div>
+          <div class="flap-face">
+            <span class="flap-corner">🌙</span>
+            <div class="flap-content">
+              <span class="flap-icon">👑</span>
+              <span class="flap-title">Ritika</span>
+              <span class="flap-sub">My 11:11 🪻</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Silk Ribbon tying across the closing card -->
+        <div class="closing-ribbon-band"></div>
+        <div class="closing-ribbon-bow">
+          <span class="closing-bow-knot">🎀</span>
+          <span class="closing-seal-pill">11:11 Sealed with Love 💜</span>
+        </div>
+      </div>
+
+      <!-- Glowing Caption -->
+      <div class="closing-caption-box">
+        <h3 class="closing-title">Sealing your 5 chapters with love... 💜</h3>
+        <p class="closing-subtitle">Welcome to our 11:11 Sanctuary &amp; Vault ✨</p>
+      </div>
+
+    </div>
+  </div>
+
   <!-- ═══════════════════ Scripts (order matters) ═══════════════════ -->
+  <script src="songs-manifest.js"></script>
   <script src="config.js"></script>
   <script src="script.js"></script>
 
