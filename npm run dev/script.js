@@ -1555,7 +1555,68 @@ window.handleAuthorChange = select => {
   }
 };
 
-// ── Shared Notes State ────────────────────────
+// ── Permanent Dual-Storage Engine (IndexedDB + localStorage + backup) ──
+const VAULT_DB_NAME = 'Ritika1111VaultDB';
+const VAULT_DB_VER  = 1;
+
+if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.persist) {
+  navigator.storage.persist().catch(() => {});
+}
+
+function openVaultDB() {
+  return new Promise(resolve => {
+    if (typeof window === 'undefined' || !window.indexedDB) return resolve(null);
+    try {
+      const req = indexedDB.open(VAULT_DB_NAME, VAULT_DB_VER);
+      req.onupgradeneeded = e => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains('notes')) {
+          db.createObjectStore('notes', { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains('wishes')) {
+          db.createObjectStore('wishes', { keyPath: 'id' });
+        }
+      };
+      req.onsuccess = e => resolve(e.target.result);
+      req.onerror = () => resolve(null);
+    } catch (e) {
+      resolve(null);
+    }
+  });
+}
+
+function idbGetAll(storeName) {
+  return openVaultDB().then(db => {
+    if (!db) return [];
+    return new Promise(resolve => {
+      try {
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => resolve([]);
+      } catch (e) {
+        resolve([]);
+      }
+    });
+  });
+}
+
+function idbPutAll(storeName, items) {
+  return openVaultDB().then(db => {
+    if (!db) return;
+    try {
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      store.clear();
+      items.forEach(item => {
+        try { store.put(item); } catch (e) {}
+      });
+    } catch (e) {}
+  });
+}
+
+// ── Shared Notes State (Permanent) ──────────────
 const DEFAULT_NOTES = [
   {
     id: 'note_1',
@@ -1583,18 +1644,55 @@ const DEFAULT_NOTES = [
   }
 ];
 
+let cachedNotes = null;
+
 function getStoredNotes() {
+  if (cachedNotes) return cachedNotes;
+  let notes = null;
   try {
     const raw = localStorage.getItem('ritika_1111_notes');
-    if (raw) return JSON.parse(raw);
+    const backup = localStorage.getItem('ritika_permanent_notes_vault');
+    if (raw) notes = JSON.parse(raw);
+    else if (backup) notes = JSON.parse(backup);
   } catch (e) {}
-  return DEFAULT_NOTES;
+
+  if (!notes || !Array.isArray(notes) || !notes.length) {
+    notes = JSON.parse(JSON.stringify(DEFAULT_NOTES));
+  }
+  // Ensure every note has an ID
+  notes.forEach((n, i) => {
+    if (!n.id) n.id = 'note_' + i + '_' + Date.now();
+  });
+  cachedNotes = notes;
+  return cachedNotes;
 }
 
 function saveStoredNotes(notes) {
+  cachedNotes = notes;
   try {
-    localStorage.setItem('ritika_1111_notes', JSON.stringify(notes));
+    const json = JSON.stringify(notes);
+    localStorage.setItem('ritika_1111_notes', json);
+    localStorage.setItem('ritika_permanent_notes_vault', json);
   } catch (e) {}
+  idbPutAll('notes', notes);
+}
+
+// Reconcile and load permanent notes from IndexedDB on startup
+function syncPermanentNotes() {
+  idbGetAll('notes').then(dbNotes => {
+    if (dbNotes && dbNotes.length) {
+      const local = getStoredNotes();
+      const map = new Map();
+      local.forEach(n => map.set(n.id || (n.text + n.timestamp), n));
+      dbNotes.forEach(n => {
+        const key = n.id || (n.text + n.timestamp);
+        if (!map.has(key)) map.set(key, n);
+      });
+      const merged = Array.from(map.values());
+      saveStoredNotes(merged);
+      renderNotes();
+    }
+  });
 }
 
 window.saveNewNote = () => {
@@ -1618,7 +1716,7 @@ window.saveNewNote = () => {
 
   const notes = getStoredNotes();
   const newNote = {
-    id: 'note_' + Date.now(),
+    id: 'note_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
     author,
     text,
     color: selectedNoteColor,
@@ -1665,21 +1763,14 @@ window.exportNotes = () => {
   }
 };
 
-function renderNotes() {
-  const wall = document.getElementById('notes-wall');
-  const countLabel = document.getElementById('notes-count-label');
-  if (!wall) return;
-
-  const notes = getStoredNotes();
-  if (countLabel) countLabel.textContent = `Shared Notes (${notes.length})`;
-
-  wall.innerHTML = notes.map(n => `
+function renderNoteCardHtml(n) {
+  return `
     <div class="note-card ${n.color || 'lavender'}">
       <div class="note-header">
         <span class="note-author-badge">${n.author}</span>
         <button class="note-del-btn" onclick="deleteNote('${n.id}')" title="Delete note">×</button>
       </div>
-      <div class="note-text">${n.text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+      <div class="note-text">${(n.text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
       <div class="note-footer">
         <span>${n.timestamp}</span>
         <button class="note-like-btn" onclick="toggleNoteLike('${n.id}')">
@@ -1687,7 +1778,81 @@ function renderNotes() {
         </button>
       </div>
     </div>
-  `).join('');
+  `;
+}
+
+function renderNotes() {
+  const wall = document.getElementById('notes-wall');
+  const countLabel = document.getElementById('notes-count-label');
+  const seeMoreWrap = document.getElementById('notes-see-more-wrap');
+  const seeMoreCount = document.getElementById('notes-more-count');
+  if (!wall) return;
+
+  const notes = getStoredNotes();
+  if (countLabel) countLabel.textContent = `Shared Notes (${notes.length})`;
+
+  // Display only the 3 latest notes on the main page
+  const visibleNotes = notes.slice(0, 3);
+  wall.innerHTML = visibleNotes.map(n => renderNoteCardHtml(n)).join('');
+
+  // If there are more than 3 notes, show the "See More" button
+  if (notes.length > 3) {
+    if (seeMoreWrap) seeMoreWrap.style.display = 'flex';
+    if (seeMoreCount) seeMoreCount.textContent = `${notes.length - 3} older`;
+  } else {
+    if (seeMoreWrap) seeMoreWrap.style.display = 'none';
+  }
+
+  // Also update archive modal if currently open
+  const modal = document.getElementById('all-notes-modal');
+  if (modal && modal.style.display === 'flex') {
+    renderAllNotesModal();
+  }
+}
+
+// ── All Notes Archive Modal (See More Page) ────
+window.openAllNotesModal = () => {
+  const modal = document.getElementById('all-notes-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  void modal.offsetWidth;
+  modal.classList.add('active');
+  const input = document.getElementById('notes-search-input');
+  if (input) input.value = '';
+  renderAllNotesModal('');
+};
+
+window.closeAllNotesModal = () => {
+  const modal = document.getElementById('all-notes-modal');
+  if (!modal) return;
+  modal.classList.remove('active');
+  setTimeout(() => { modal.style.display = 'none'; }, 220);
+};
+
+window.filterAllNotes = query => {
+  renderAllNotesModal((query || '').toLowerCase().trim());
+};
+
+function renderAllNotesModal(filterQuery = '') {
+  const grid = document.getElementById('modal-notes-grid');
+  const countBadge = document.getElementById('modal-notes-count');
+  if (!grid) return;
+
+  const notes = getStoredNotes();
+  const filtered = filterQuery
+    ? notes.filter(n => (n.text || '').toLowerCase().includes(filterQuery) || (n.author || '').toLowerCase().includes(filterQuery))
+    : notes;
+
+  if (countBadge) {
+    countBadge.textContent = `${filtered.length} Note${filtered.length === 1 ? '' : 's'}`;
+  }
+
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="archive-empty-state"><span>🌸</span>No matching notes found</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(n => renderNoteCardHtml(n)).join('');
 }
 
 // ── Jukebox State ─────────────────────────────
@@ -1944,18 +2109,62 @@ function renderPlaylist() {
   `).join('');
 }
 
-// ── 11:11 Wish Jar State ──────────────────────
+// ── 11:11 Wish Jar State (Permanent) ──────────
 const DEFAULT_WISHES_JAR = [
-  { text: 'May your smile always remain as effortless and radiant as it is today. 🪻', time: '11:11 PM' },
-  { text: 'Every wish for endless laughter, peace of mind, and dreams taking flight. ✨', time: '11:11 PM' }
+  { id: 'wish_1', text: 'May your smile always remain as effortless and radiant as it is today. 🪻', time: '11:11 PM · Special' },
+  { id: 'wish_2', text: 'Every wish for endless laughter, peace of mind, and dreams taking flight. ✨', time: '11:11 PM · Star' },
+  { id: 'wish_3', text: 'To a bond that keeps growing warmer, softer, and more beautiful with time. 🌙', time: '11:11 PM · Forever' }
 ];
 
+let cachedWishes = null;
+
 function getStoredWishesJar() {
+  if (cachedWishes) return cachedWishes;
+  let wishes = null;
   try {
     const raw = localStorage.getItem('ritika_1111_wishes_jar');
-    if (raw) return JSON.parse(raw);
+    const backup = localStorage.getItem('ritika_permanent_wishes_vault');
+    if (raw) wishes = JSON.parse(raw);
+    else if (backup) wishes = JSON.parse(backup);
   } catch (e) {}
-  return DEFAULT_WISHES_JAR;
+
+  if (!wishes || !Array.isArray(wishes) || !wishes.length) {
+    wishes = JSON.parse(JSON.stringify(DEFAULT_WISHES_JAR));
+  }
+  // Ensure every wish has an ID
+  wishes.forEach((w, i) => {
+    if (!w.id) w.id = 'wish_' + i + '_' + Date.now();
+  });
+  cachedWishes = wishes;
+  return cachedWishes;
+}
+
+function saveStoredWishesJar(wishes) {
+  cachedWishes = wishes;
+  try {
+    const json = JSON.stringify(wishes);
+    localStorage.setItem('ritika_1111_wishes_jar', json);
+    localStorage.setItem('ritika_permanent_wishes_vault', json);
+  } catch (e) {}
+  idbPutAll('wishes', wishes);
+}
+
+// Reconcile and load permanent wishes from IndexedDB on startup
+function syncPermanentWishes() {
+  idbGetAll('wishes').then(dbWishes => {
+    if (dbWishes && dbWishes.length) {
+      const local = getStoredWishesJar();
+      const map = new Map();
+      local.forEach(w => map.set(w.id || w.text, w));
+      dbWishes.forEach(w => {
+        const key = w.id || w.text;
+        if (!map.has(key)) map.set(key, w);
+      });
+      const merged = Array.from(map.values());
+      saveStoredWishesJar(merged);
+      renderWishJar();
+    }
+  });
 }
 
 window.submitWishJar = () => {
@@ -1967,13 +2176,18 @@ window.submitWishJar = () => {
   }
 
   const now = new Date();
-  const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) + ' · ' +
+               now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   const wishes = getStoredWishesJar();
-  wishes.unshift({ text, time });
-  try {
-    localStorage.setItem('ritika_1111_wishes_jar', JSON.stringify(wishes));
-  } catch (e) {}
+  const newWish = {
+    id: 'wish_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+    text,
+    time
+  };
+
+  wishes.unshift(newWish);
+  saveStoredWishesJar(wishes);
 
   if (input) input.value = '';
   renderWishJar();
@@ -1983,20 +2197,106 @@ window.submitWishJar = () => {
 
 function renderWishJar() {
   const list = document.getElementById('wishes-list');
+  const seeMoreWrap = document.getElementById('wishes-see-more-wrap');
+  const seeMoreCount = document.getElementById('wishes-more-count');
   if (!list) return;
+
   const wishes = getStoredWishesJar();
-  list.innerHTML = wishes.map(w => `
+  // Display only the 3 latest wishes on the main page
+  const visibleWishes = wishes.slice(0, 3);
+  list.innerHTML = visibleWishes.map(w => `
     <div class="wish-bubble">
       <span>⭐ ${w.text}</span>
       <span class="wish-bubble-time">${w.time}</span>
     </div>
   `).join('');
+
+  // If there are more than 3 wishes, show the "See More" button
+  if (wishes.length > 3) {
+    if (seeMoreWrap) seeMoreWrap.style.display = 'flex';
+    if (seeMoreCount) seeMoreCount.textContent = `${wishes.length - 3} older`;
+  } else {
+    if (seeMoreWrap) seeMoreWrap.style.display = 'none';
+  }
+
+  // Also update archive modal if currently open
+  const modal = document.getElementById('all-wishes-modal');
+  if (modal && modal.style.display === 'flex') {
+    renderAllWishesModal();
+  }
 }
+
+// ── All Wishes Archive Modal (See More Page) ───
+window.openAllWishesModal = () => {
+  const modal = document.getElementById('all-wishes-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  void modal.offsetWidth;
+  modal.classList.add('active');
+  const input = document.getElementById('wishes-search-input');
+  if (input) input.value = '';
+  renderAllWishesModal('');
+};
+
+window.closeAllWishesModal = () => {
+  const modal = document.getElementById('all-wishes-modal');
+  if (!modal) return;
+  modal.classList.remove('active');
+  setTimeout(() => { modal.style.display = 'none'; }, 220);
+};
+
+window.filterAllWishes = query => {
+  renderAllWishesModal((query || '').toLowerCase().trim());
+};
+
+function renderAllWishesModal(filterQuery = '') {
+  const list = document.getElementById('modal-wishes-list');
+  const countBadge = document.getElementById('modal-wishes-count');
+  if (!list) return;
+
+  const wishes = getStoredWishesJar();
+  const filtered = filterQuery
+    ? wishes.filter(w => (w.text || '').toLowerCase().includes(filterQuery))
+    : wishes;
+
+  if (countBadge) {
+    countBadge.textContent = `${filtered.length} Wish${filtered.length === 1 ? '' : 'es'}`;
+  }
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="archive-empty-state"><span>🏺</span>No matching wishes found</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(w => `
+    <div class="wish-bubble archive-wish-bubble">
+      <span class="wish-bubble-text">🌟 ${w.text}</span>
+      <span class="wish-bubble-time">${w.time}</span>
+    </div>
+  `).join('');
+}
+
+window.handleArchiveBackdrop = (e, modalId) => {
+  if (e.target && e.target.id === modalId) {
+    if (modalId === 'all-notes-modal') closeAllNotesModal();
+    if (modalId === 'all-wishes-modal') closeAllWishesModal();
+  }
+};
+
+// Keyboard listener for Escape to close archive modals
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeAllNotesModal();
+    closeAllWishesModal();
+  }
+});
 
 function initCapsuleSpace() {
   renderNotes();
   renderPlaylist();
   renderWishJar();
+  syncPermanentNotes();
+  syncPermanentWishes();
 }
 
 /* ══════════════════════════════════════════════
@@ -2006,6 +2306,8 @@ buildStages();
 setupCover();
 showScreen('screen-cover');
 updateProgress();
+syncPermanentNotes();
+syncPermanentWishes();
 
 } // end initApp
 

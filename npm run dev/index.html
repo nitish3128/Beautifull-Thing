@@ -224,6 +224,14 @@
         <!-- Pinned Notes Masonry Wall -->
         <div class="notes-wall" id="notes-wall"></div>
 
+        <!-- See More Notes Button (visible if > 3 notes) -->
+        <div class="see-more-wrap" id="notes-see-more-wrap" style="display:none;">
+          <button class="see-more-btn" onclick="openAllNotesModal()">
+            <span class="see-more-icon">📜</span>
+            <span>See More Notes (<span id="notes-more-count">0</span>) ✨</span>
+          </button>
+        </div>
+
       </div>
 
       <!-- TAB 2: SONG VAULT & JUKEBOX -->
@@ -301,6 +309,14 @@
           </div>
 
           <div class="wishes-list" id="wishes-list"></div>
+
+          <!-- See More Wishes Button (visible if > 3 wishes) -->
+          <div class="see-more-wrap" id="wishes-see-more-wrap" style="display:none;">
+            <button class="see-more-btn wish-see-more-btn" onclick="openAllWishesModal()">
+              <span class="see-more-icon">🏺</span>
+              <span>Open Full Wish Jar (<span id="wishes-more-count">0</span> older) 💫</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -313,6 +329,65 @@
 
     </div>
   </section>
+
+  <!-- ════════════════════════════════════════════
+       ALL NOTES ARCHIVE MODAL (PERMANENT VAULT)
+  ════════════════════════════════════════════ -->
+  <div id="all-notes-modal" class="archive-modal" style="display:none;" onclick="handleArchiveBackdrop(event, 'all-notes-modal')">
+    <div class="archive-modal-card" onclick="event.stopPropagation()">
+      <div class="archive-modal-header">
+        <div class="archive-header-left">
+          <span class="archive-header-icon">💌</span>
+          <div>
+            <h3 class="archive-title">All Shared Notes &amp; Keepsakes</h3>
+            <p class="archive-sub">Every thought, note, and memory kept forever in our 11:11 Sanctuary</p>
+          </div>
+        </div>
+        <button class="close-archive-btn" onclick="closeAllNotesModal()" aria-label="Close">✕</button>
+      </div>
+      
+      <div class="archive-search-bar">
+        <input type="text" id="notes-search-input" class="capsule-input" placeholder="🔍 Search notes, memories or author..." oninput="filterAllNotes(this.value)">
+        <span class="archive-count-badge" id="modal-notes-count">0 Notes</span>
+      </div>
+
+      <div class="archive-notes-grid" id="modal-notes-grid"></div>
+
+      <div class="archive-modal-footer">
+        <button class="capsule-mini-btn" onclick="exportNotes()">📋 Copy All Notes</button>
+        <button class="capsule-nav-btn close-btn-pill" onclick="closeAllNotesModal()">‹ Back to 11:11 Space</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       ALL WISHES ARCHIVE MODAL (PERMANENT VAULT)
+  ════════════════════════════════════════════ -->
+  <div id="all-wishes-modal" class="archive-modal" style="display:none;" onclick="handleArchiveBackdrop(event, 'all-wishes-modal')">
+    <div class="archive-modal-card" onclick="event.stopPropagation()">
+      <div class="archive-modal-header">
+        <div class="archive-header-left">
+          <span class="archive-header-icon">🏺</span>
+          <div>
+            <h3 class="archive-title">The 11:11 Wish Jar · Complete Vault</h3>
+            <p class="archive-sub">Every wish ever sealed into the jar — preserved forever under the stars ✨</p>
+          </div>
+        </div>
+        <button class="close-archive-btn" onclick="closeAllWishesModal()" aria-label="Close">✕</button>
+      </div>
+
+      <div class="archive-search-bar">
+        <input type="text" id="wishes-search-input" class="capsule-input" placeholder="🔍 Search wishes..." oninput="filterAllWishes(this.value)">
+        <span class="archive-count-badge" id="modal-wishes-count">0 Wishes</span>
+      </div>
+
+      <div class="archive-wishes-list" id="modal-wishes-list"></div>
+
+      <div class="archive-modal-footer">
+        <button class="capsule-nav-btn close-btn-pill" onclick="closeAllWishesModal()">‹ Back to 11:11 Space</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ════════════════════════════════════════════
        PUBLISH SPECIAL MOMENT MODAL

@@ -1487,6 +1487,256 @@ body.theme-sunset   { background: linear-gradient(135deg,#FFE2E8,#FFD6EA,#FFF2E0
 }
 .wish-bubble-time { font-size:.72rem; color:var(--text-light); white-space:nowrap; }
 
+/* ════════════════════════════════════════════
+   SEE MORE BUTTONS (Notes & Wish Jar)
+════════════════════════════════════════════ */
+.see-more-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+.see-more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 26px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(245, 235, 255, 0.95));
+  font-family: var(--font-head);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #581c87;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(147, 51, 234, 0.15), 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.see-more-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 12px 32px rgba(147, 51, 234, 0.25), 0 0 16px rgba(236, 72, 153, 0.3);
+  background: #fff;
+  border-color: rgba(236, 72, 153, 0.7);
+}
+.see-more-icon {
+  font-size: 1.15rem;
+}
+.wish-see-more-btn {
+  color: #701a75;
+}
+
+/* ════════════════════════════════════════════
+   ALL NOTES & ALL WISHES ARCHIVE MODALS
+════════════════════════════════════════════ */
+.archive-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(12, 4, 28, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: modalOverlayIn 0.25s ease both;
+}
+@keyframes modalOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.archive-modal-card {
+  width: 100%;
+  max-width: 760px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(145deg, rgba(35, 12, 65, 0.96) 0%, rgba(18, 5, 38, 0.98) 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  border-radius: 28px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6), 0 0 30px rgba(168, 85, 247, 0.2);
+  overflow: hidden;
+  animation: modalPopIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes modalPopIn {
+  from { transform: scale(0.92) translateY(12px); opacity: 0; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.archive-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px 24px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  gap: 16px;
+}
+.archive-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.archive-header-icon {
+  font-size: 2.2rem;
+  filter: drop-shadow(0 2px 10px rgba(236, 72, 153, 0.5));
+}
+.archive-title {
+  font-family: var(--font-head);
+  font-size: clamp(1.15rem, 3.5vw, 1.45rem);
+  color: #fff;
+  margin: 0 0 4px;
+}
+.archive-sub {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0;
+  line-height: 1.4;
+}
+.close-archive-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.close-archive-btn:hover {
+  background: rgba(239, 68, 68, 0.8);
+  border-color: rgba(239, 68, 68, 1);
+  transform: scale(1.1);
+}
+
+.archive-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 24px;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.archive-search-bar .capsule-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+.archive-search-bar .capsule-input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+.archive-count-badge {
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.archive-notes-grid {
+  padding: 20px 24px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+  flex: 1;
+  max-height: 52vh;
+}
+.archive-notes-grid::-webkit-scrollbar,
+.archive-wishes-list::-webkit-scrollbar {
+  width: 6px;
+}
+.archive-notes-grid::-webkit-scrollbar-thumb,
+.archive-wishes-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+}
+
+.archive-wishes-list {
+  padding: 20px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  max-height: 52vh;
+}
+.archive-wish-bubble {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+.archive-wish-bubble .wish-bubble-text {
+  font-size: 0.94rem;
+  line-height: 1.5;
+  color: #fff;
+}
+.archive-wish-bubble .wish-bubble-time {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.archive-empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px 20px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+}
+.archive-empty-state span {
+  display: block;
+  font-size: 2.4rem;
+  margin-bottom: 8px;
+}
+
+.archive-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+}
+.close-btn-pill {
+  padding: 8px 20px;
+  font-size: 0.85rem;
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+@media (max-width: 500px) {
+  .archive-modal {
+    padding: 8px;
+  }
+  .archive-modal-card {
+    max-height: 94vh;
+    border-radius: 20px;
+  }
+  .archive-modal-header {
+    padding: 16px;
+  }
+  .archive-search-bar {
+    padding: 10px 16px;
+  }
+  .archive-notes-grid,
+  .archive-wishes-list {
+    padding: 14px 16px;
+    grid-template-columns: 1fr;
+  }
+  .archive-modal-footer {
+    padding: 12px 16px;
+  }
+}
+
 /* Footer Nav */
 .capsule-footer-nav { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:14px; }
 .capsule-nav-btn {
